@@ -9,8 +9,10 @@ import java.util.stream.IntStream;
 
 interface WorldMap {
 
+  int zoomMax = 18;
+
   static String entityIdOf(Region region) {
-    return String.format("region:%d:%f:%f:%f:%f", region.zoom,
+    return String.format("region:%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
         region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
   }
 
@@ -41,7 +43,7 @@ interface WorldMap {
    * level 4 - 4 regions  20 / 2 x  20 / 2,  10 lat x  10 lng
    * level 5 - 4 regions  10 / 2 x  10 / 2,   5 lat x   5 lng, subdivide by 4 down to zoom 18
    */
-  static List<Region> subRegionFor(Region region) {
+  static List<Region> subRegionsFor(Region region) {
     switch (region.zoom) {
       case 0:
         return subRegionsForZoom0(region);
@@ -63,6 +65,9 @@ interface WorldMap {
   private static List<Region> subRegionsForZoomX(Region region, int splits) {
     final double length = (region.topLeft.lat - region.botRight.lat) / splits;
     List<Region> regions = new ArrayList<>();
+    if (region.zoom >= zoomMax) {
+      return regions;
+    }
     IntStream.range(0, splits).forEach(latIndex -> {
       IntStream.range(0, splits).forEach(lngIndex -> {
         final LatLng topLeft = topLeft(region.topLeft.lat - latIndex * length, region.topLeft.lng + lngIndex * length);
@@ -156,7 +161,7 @@ interface WorldMap {
       return isInside(region.topLeft) && isInside(region.botRight);
     }
 
-    private boolean isInside(LatLng latLng) {
+    boolean isInside(LatLng latLng) {
       return topLeft.lat >= latLng.lat && botRight.lat <= latLng.lat
           && topLeft.lng <= latLng.lng && botRight.lng >= latLng.lng;
     }

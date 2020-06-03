@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static oti.simulator.WorldMap.*;
@@ -289,7 +290,7 @@ public class WorldMapTest {
 
   @Test
   public void subRegionsForZoom0() {
-    List<WorldMap.Region> regions = subRegionFor(regionForZoom0());
+    List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
 
     assertEquals(2, regions.size());
 
@@ -303,8 +304,8 @@ public class WorldMapTest {
 
   @Test
   public void subRegionsForZoom1() {
-    List<WorldMap.Region> regions = subRegionFor(regionForZoom0());
-    regions = subRegionFor(regions.get(0));
+    List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
+    regions = subRegionsFor(regions.get(0));
 
     assertEquals(9, regions.size());
 
@@ -322,9 +323,9 @@ public class WorldMapTest {
 
   @Test
   public void subRegionsForZoom2() {
-    List<WorldMap.Region> regions = subRegionFor(regionForZoom0());
-    regions = subRegionFor(regions.get(0));
-    regions = subRegionFor(regions.get(0));
+    List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
+    regions = subRegionsFor(regions.get(0));
+    regions = subRegionsFor(regions.get(0));
 
     assertEquals(9, regions.size());
 
@@ -342,10 +343,10 @@ public class WorldMapTest {
 
   @Test
   public void subRegionsForZoom3() {
-    List<WorldMap.Region> regions = subRegionFor(regionForZoom0());
-    regions = subRegionFor(regions.get(0));
-    regions = subRegionFor(regions.get(0));
-    regions = subRegionFor(regions.get(0));
+    List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
+    regions = subRegionsFor(regions.get(0));
+    regions = subRegionsFor(regions.get(0));
+    regions = subRegionsFor(regions.get(0));
 
     assertEquals(4, regions.size());
 
@@ -363,7 +364,44 @@ public class WorldMapTest {
 
   @Test
   public void regionForEntityId() {
-    WorldMap.Region region = regionForZoom0();
-    WorldMap.Region region0 = WorldMap.regionForEntityId(entityIdOf(region));
+    WorldMap.Region region0 = regionForZoom0();
+    WorldMap.Region region1 = WorldMap.regionForEntityId(entityIdOf(region0));
+
+    assertEquals(region0, region1);
+
+    List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
+    regions = subRegionsFor(regions.get(0));
+    for (int z = 1; z < zoomMax - 1; z++) {
+      regions = subRegionsFor(regions.get(0));
+    }
+    regions.forEach(region -> assertEquals(region, WorldMap.regionForEntityId(WorldMap.entityIdOf(region))));
+  }
+
+  @Test
+  public void subRegionsContainedWithinSuperRegion() {
+    List<List<WorldMap.Region>> zoomRegions = zoomRegions();
+
+    WorldMap.Region region0 = regionForZoom0();
+    assertTrue(region0.contains(zoomRegions.get(0).get(0)));
+    assertTrue(region0.contains(zoomRegions.get(0).get(1)));
+
+    IntStream.range(1, zoomRegions.size()).forEach(zoom -> {
+      IntStream.range(0, zoomRegions.get(zoom).size()).forEach(srIdx -> {
+        assertTrue(zoomRegions.get(zoom - 1).get(0).contains(zoomRegions.get(zoom).get(srIdx)));
+      });
+    });
+  }
+
+  private List<List<WorldMap.Region>> zoomRegions() {
+    List<List<WorldMap.Region>> zoomRegions = new ArrayList<>();
+
+    List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
+    zoomRegions.add(regions);
+
+    IntStream.range(1, zoomMax).forEach(zoom -> {
+      WorldMap.Region lastRegion = zoomRegions.get(zoomRegions.size() - 1).get(0);
+      zoomRegions.add(subRegionsFor(lastRegion));
+    });
+    return zoomRegions;
   }
 }
