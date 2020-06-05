@@ -1,6 +1,8 @@
 package oti.simulator;
 
 import akka.persistence.typed.PersistenceId;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,10 +91,11 @@ interface WorldMap {
   }
 
   class LatLng implements CborSerializable {
-    final double lat;
-    final double lng;
+    public final double lat;
+    public final double lng;
 
-    LatLng(double lat, double lng) {
+    @JsonCreator
+    public LatLng(@JsonProperty("lat") double lat, @JsonProperty("lng") double lng) {
       this.lat = lat;
       this.lng = lng;
     }
@@ -118,11 +121,12 @@ interface WorldMap {
   }
 
   class Region implements CborSerializable {
-    final int zoom;
-    final LatLng topLeft;
-    final LatLng botRight;
+    public final int zoom;
+    public final LatLng topLeft;
+    public final LatLng botRight;
 
-    Region(int zoom, LatLng topLeft, LatLng botRight) {
+    @JsonCreator
+    Region(@JsonProperty("zoom") int zoom, @JsonProperty("topLeft") LatLng topLeft, @JsonProperty("botRight") LatLng botRight) {
       if (zoom < 0 || zoom > 18) {
         throw new IllegalArgumentException("Zoom must be in >= 0 and <= 18.");
       }

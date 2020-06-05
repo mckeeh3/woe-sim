@@ -7,11 +7,16 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.model.HttpRequest;
 import akka.persistence.typed.PersistenceId;
-import akka.persistence.typed.javadsl.CommandHandler;
-import akka.persistence.typed.javadsl.Effect;
-import akka.persistence.typed.javadsl.EventHandler;
-import akka.persistence.typed.javadsl.EventSourcedBehavior;
+import akka.persistence.typed.SnapshotSelectionCriteria;
+import akka.persistence.typed.javadsl.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -40,15 +45,17 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   enum SelectionAction {
-    create, delete, happy, sad;
+    create, delete, happy, sad
   }
 
-  private abstract static class SelectionCommand implements Command {
-    final SelectionAction action;
-    final Selection selection;
-    final ActorRef<Command> replyTo;
+  public abstract static class SelectionCommand implements Command {
+    public final SelectionAction action;
+    public final Selection selection;
+    public final ActorRef<Command> replyTo;
 
-    SelectionCommand(SelectionAction action, Selection selection, ActorRef<Command> replyTo) {
+    @JsonCreator
+    public SelectionCommand(@JsonProperty("action") SelectionAction action, @JsonProperty("selection") Selection selection,
+                            @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       this.action = action;
       this.selection = selection;
       this.replyTo = replyTo;
@@ -60,8 +67,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  static final class SelectionCreate extends SelectionCommand {
-    SelectionCreate(Selection selection, ActorRef<Command> replyTo) {
+  public static final class SelectionCreate extends SelectionCommand {
+    @JsonCreator
+    public SelectionCreate(@JsonProperty("selection") Selection selection, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(SelectionAction.create, selection, replyTo);
     }
   }
@@ -87,11 +95,12 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   interface Event extends CborSerializable {
   }
 
-  static final class SelectionAccepted implements Event {
-    final SelectionAction action;
-    final Selection selection;
+  public static final class SelectionAccepted implements Event {
+    public final SelectionAction action;
+    public final Selection selection;
 
-    SelectionAccepted(SelectionAction action, Selection selection) {
+    @JsonCreator
+    SelectionAccepted(@JsonProperty("action") SelectionAction action, @JsonProperty("selection") Selection selection) {
       this.action = action;
       this.selection = selection;
     }
@@ -102,10 +111,11 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  static final class Selection implements CborSerializable {
-    final WorldMap.Region region;
+  public static final class Selection implements CborSerializable {
+    public final WorldMap.Region region;
 
-    Selection(WorldMap.Region region) {
+    @JsonCreator
+    public Selection(@JsonProperty("region") WorldMap.Region region) {
       this.region = region;
     }
 
@@ -212,6 +222,10 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   private void notifyTwin(SelectionCommand selectionCommand) {
     // TODO
+    final Http http = Http.get(actorContext.getSystem().classicSystem());
+    actorContext.pipeToSelf(http.singleRequest(HttpRequest.create("")), (res, t) -> {
+      return null;
+    });
   }
 
   private void forwardSelectionToSubRegions(State state, SelectionCommand selectionCommand) {
@@ -227,6 +241,11 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     return newEventHandlerBuilder().forAnyState()
         .onEvent(SelectionAccepted.class, State::addSelection)
         .build();
+  }
+
+  @Override
+  public Recovery recovery() {
+    return Recovery.withSnapshotSelectionCriteria(SnapshotSelectionCriteria.none());
   }
 
   Logger log() {
