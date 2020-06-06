@@ -79,7 +79,7 @@ public class HttpServerTest {
 
   @Test
   public void thatSelectionCreatePostAndReplyAreSerializable() {
-    Region.Selection selection = new Region.Selection(regionForZoom0());
+    WorldMap.Region selection = regionForZoom0();
     Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
 
     HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
@@ -121,7 +121,7 @@ public class HttpServerTest {
         path("logback-test.xml", () -> getFromResource("logback-test.xml", ContentTypes.TEXT_XML_UTF8)),
         path("selection-create", () -> concat(
             get(() -> {
-              Region.Selection selection = new Region.Selection(regionForZoom0());
+              WorldMap.Region selection = regionForZoom0();
               Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
               return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
             }),

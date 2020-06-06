@@ -6,6 +6,8 @@
         </encoder>
     </appender>
 
+    <logger name="akka.cluster.sharding" level="INFO" />
+
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>

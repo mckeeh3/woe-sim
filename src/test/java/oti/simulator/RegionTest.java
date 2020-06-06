@@ -61,7 +61,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(1, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom18Selection");
@@ -79,7 +79,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(4, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom17Selection");
@@ -97,7 +97,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(16, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom16Selection");
@@ -115,7 +115,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(64, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom15Selection");
@@ -132,7 +132,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(65536, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom10Selection");
@@ -150,7 +150,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(262144, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom09Selection");
@@ -168,7 +168,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(new Region.Selection(region), probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
     probe.receiveSeveralMessages(1048576, Duration.ofMinutes(10));
     testKit.system().log().debug("exit createZoom08Selection");
@@ -178,29 +178,26 @@ public class RegionTest {
   public void selectionsListLargerContainingSelectionsOverrideSmallerSelections() {
     List<List<WorldMap.Region>> zoomRegions = zoomRegions();
 
-    Region.Selection selectionZoom4 = new Region.Selection(zoomRegions.get(3).get(0));
-    Region.Selection selectionZoom5 = new Region.Selection(zoomRegions.get(4).get(0));
-    Region.Selection selectionZoom6 = new Region.Selection(zoomRegions.get(5).get(0));
+    WorldMap.Region selectionZoom4 = zoomRegions.get(3).get(0);
+    WorldMap.Region selectionZoom5 = zoomRegions.get(4).get(0);
+    WorldMap.Region selectionZoom6 = zoomRegions.get(5).get(0);
 
-    WorldMap.Region region = selectionZoom5.region;
-    Region.Selections selections = new Region.Selections(region);
+    Region.Selections selections = new Region.Selections(selectionZoom5);
 
     // add 4 non-overlapping sub-selections
-    subRegionsFor(selectionZoom6.region).forEach(subRegion -> {
-      selections.add(new Region.Selection(subRegion));
-    });
+    subRegionsFor(selectionZoom6).forEach(selections::add);
 
-    assertEquals(4, selections.current.size());
+    assertEquals(4, selections.currentSelections.size());
 
     // add selection that contains the current 4 sub-selections
     // causing them to be removed and replaced by the new selection
-    selections.add(new Region.Selection(selectionZoom6.region));
+    selections.add(selectionZoom6);
 
-    assertEquals(1, selections.current.size());
+    assertEquals(1, selections.currentSelections.size());
 
-    selections.add(new Region.Selection(selectionZoom4.region));
+    selections.add(selectionZoom4);
 
-    assertEquals(1, selections.current.size());
+    assertEquals(1, selections.currentSelections.size());
   }
 
   private void clusterShardingInit(ClusterSharding clusterSharding) {

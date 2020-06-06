@@ -18,7 +18,7 @@ import static oti.simulator.WorldMap.regionForZoom0;
 public class MarshallingSelectionCreateTest extends JUnitRouteTest {
   @Test
   public void testEntitySelectionCreate() {
-    final Region.Selection selection = new Region.Selection(regionForZoom0());
+    final WorldMap.Region selection = regionForZoom0();
     final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
     final Unmarshaller<HttpEntity, Region.SelectionCreate> unmarshaller = Jackson.unmarshaller(Region.SelectionCreate.class);
     final Route route = entity(unmarshaller, sc ->
