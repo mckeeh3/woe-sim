@@ -7,8 +7,6 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.model.HttpRequest;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.SnapshotSelectionCriteria;
 import akka.persistence.typed.javadsl.*;
@@ -54,7 +52,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
                             @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       this.action = action;
       this.region = region;
-      this.replyTo = replyTo;
+      this.replyTo = replyTo; // used for unit testing
     }
 
     @Override
@@ -68,11 +66,19 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(SelectionAction.create, region, replyTo);
     }
+
+    public SelectionCreate(WorldMap.Region region) {
+      super(SelectionAction.create, region, null);
+    }
   }
 
   static final class SelectionDelete extends SelectionCommand {
     SelectionDelete(WorldMap.Region region, ActorRef<Command> replyTo) {
       super(SelectionAction.delete, region, replyTo);
+    }
+
+    public SelectionDelete(WorldMap.Region region) {
+      super(SelectionAction.delete, region, null);
     }
   }
 
@@ -80,11 +86,19 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     SelectionHappy(WorldMap.Region region, ActorRef<Command> replyTo) {
       super(SelectionAction.happy, region, replyTo);
     }
+
+    public SelectionHappy(WorldMap.Region region) {
+      super(SelectionAction.happy, region, null);
+    }
   }
 
   static final class SelectionSad extends SelectionCommand {
     SelectionSad(WorldMap.Region region, ActorRef<Command> replyTo) {
       super(SelectionAction.sad, region, replyTo);
+    }
+
+    public SelectionSad(WorldMap.Region region) {
+      super(SelectionAction.sad, region, null);
     }
   }
 

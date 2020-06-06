@@ -2,6 +2,10 @@ package oti.simulator;
 
 import akka.actor.ActorSystem;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
+import akka.actor.testkit.typed.javadsl.TestProbe;
+import akka.cluster.Cluster;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
@@ -13,63 +17,119 @@ import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 import static akka.http.javadsl.server.Directives.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static oti.simulator.WorldMap.regionForZoom0;
 
 public class HttpServerTest {
-  private static CompletionStage<ServerBinding> httpServerBinding;
+  private static HttpServer httpServer;
 
   @ClassRule
-  public static final TestKitJunitResource testKit = new TestKitJunitResource();
+  public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
+
+  private static Config config() {
+    return ConfigFactory.parseString(
+        String.format("akka.cluster.seed-nodes = [ \"akka://%s@127.0.0.1:25520\" ] %n", HttpServerTest.class.getSimpleName())
+            + String.format("akka.persistence.snapshot-store.local.dir = \"%s-%s\" %n", "target/snapshot", UUID.randomUUID().toString())
+    ).withFallback(ConfigFactory.load("application-test.conf"));
+  }
 
   @BeforeClass
   public static void before() {
-    httpServerBinding = httpServer("localhost", 28080);
+    ClusterSharding clusterSharding = ClusterSharding.get(testKit.system());
+
+    clusterSharding.init(
+        Entity.of(
+            Region.entityTypeKey,
+            entityContext ->
+                Region.create(entityContext.getEntityId(), clusterSharding)
+        )
+    );
+    testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
+
+    httpServer = HttpServer.start("localhost", 28080, testKit.system());
   }
 
   @Test
-  public void readTextFile() {
+  public void submitHttpSelectionZoom16() {
+    TestProbe<Region.Command> probe = testKit.createTestProbe();
+
+    // Submit request to create a selected region in London across Westminster Bridge at Park Plaza Hotel
+    WorldMap.Region region = WorldMap.regionAtLatLng(16, new WorldMap.LatLng(51.50079211, -0.11682093));
+    HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", region);
+
+    httpServer.replyTo(probe.ref()); // hack to pass probe ref to entity messages
+
     HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
-        .singleRequest(HttpRequest.GET("http://localhost:28080/application-test.conf"))
+        .singleRequest(HttpRequest.POST("http://localhost:28080/selection")
+            .withEntity(toHttpEntity(selectionActionRequest)))
         .toCompletableFuture().join();
 
+    probe.receiveSeveralMessages(16, Duration.ofSeconds(30));
     assertTrue(httpResponse.status().isSuccess());
-    Materializer materializer = Materializer.matFromSystem(testKit.system().classicSystem());
-    String entity = entityAsString(httpResponse, materializer);
-    assertNotNull(entity);
-    assertTrue(entity.startsWith("akka {"));
+
+    String response = entityAsString(httpResponse, materializer());
+    assertNotNull(response);
+    assertTrue(response.contains("\"message\":\"Accepted\""));
   }
 
   @Test
-  public void readXmlFile() {
+  public void readHtmlFile() {
     HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
-        .singleRequest(HttpRequest.GET("http://localhost:28080/logback-test.xml"))
+        .singleRequest(HttpRequest.GET("http://localhost:28080/oti.html"))
         .toCompletableFuture().join();
 
     assertTrue(httpResponse.status().isSuccess());
-    Materializer materializer = Materializer.matFromSystem(testKit.system().classicSystem());
-    String entity = entityAsString(httpResponse, materializer);
+    String entity = entityAsString(httpResponse, materializer());
     assertNotNull(entity);
-    assertTrue(entity.startsWith("<configuration>"));
+    assertTrue(entity.startsWith("For unit testing"));
   }
 
+  @Test
+  public void readJsFiles() {
+    Arrays.stream(new String[]{"oti.js", "p5.js", "mappa.js"}).forEach(filename -> {
+      HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
+          .singleRequest(HttpRequest.GET(String.format("http://localhost:28080/%s", filename)))
+          .toCompletableFuture().join();
+
+      assertTrue(httpResponse.status().isSuccess());
+      assertEquals(ContentTypes.APPLICATION_JSON, httpResponse.entity().getContentType());
+      String entity = entityAsString(httpResponse, materializer());
+      assertNotNull(entity);
+      assertTrue(entity.startsWith("For unit testing"));
+    });
+  }
+
+  private static HttpResponse readFile(String filename) {
+    return Http.get(testKit.system().classicSystem())
+        .singleRequest(HttpRequest.GET(String.format("http://localhost:28080/%s", filename)))
+        .toCompletableFuture().join();
+  }
+
+  private static Materializer materializer() {
+    return Materializer.matFromSystem(testKit.system().classicSystem());
+  }
+
+  @Ignore
   @Test
   public void thatSelectionCreateIsSerializable() {
-    Materializer materializer = Materializer.matFromSystem(testKit.system().classicSystem());
-
     String entity = Http.get(testKit.system().classicSystem())
         .singleRequest(HttpRequest.GET("http://localhost:28080/selection-create"))
         .thenCompose(rsp ->
             rsp.entity().getDataBytes()
-                .runReduce(ByteString::concat, materializer)
+                .runReduce(ByteString::concat, materializer())
                 .thenApply(ByteString::utf8String)
         ).toCompletableFuture().join();
 
@@ -77,6 +137,7 @@ public class HttpServerTest {
     assertTrue(entity.contains("\"zoom\":0"));
   }
 
+  @Ignore
   @Test
   public void thatSelectionCreatePostAndReplyAreSerializable() {
     WorldMap.Region selection = regionForZoom0();
@@ -88,8 +149,7 @@ public class HttpServerTest {
         .toCompletableFuture().join();
 
     assertTrue(httpResponse.status().isSuccess());
-    Materializer materializer = Materializer.matFromSystem(testKit.system().classicSystem());
-    String entity = entityAsString(httpResponse, materializer);
+    String entity = entityAsString(httpResponse, materializer());
     assertNotNull(entity);
   }
 
@@ -108,11 +168,10 @@ public class HttpServerTest {
 
   private static CompletionStage<ServerBinding> httpServer(String host, int port) {
     ActorSystem actorSystem = testKit.system().classicSystem();
-    Materializer materializer = Materializer.matFromSystem(actorSystem);
 
     return Http.get(actorSystem.classicSystem())
-        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
-            ConnectHttp.toHost(host, port), materializer);
+        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer()),
+            ConnectHttp.toHost(host, port), materializer());
   }
 
   private static Route route() {

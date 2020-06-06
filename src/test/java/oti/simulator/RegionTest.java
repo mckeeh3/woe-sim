@@ -31,7 +31,8 @@ public class RegionTest {
 
   private static Config config() {
     return ConfigFactory.parseString(
-        String.format("akka.persistence.snapshot-store.local.dir = \"%s-%s\" %n", "target/snapshot", UUID.randomUUID().toString())
+        String.format("akka.cluster.seed-nodes = [ \"akka://%s@127.0.0.1:25520\" ] %n", RegionTest.class.getSimpleName())
+            + String.format("akka.persistence.snapshot-store.local.dir = \"%s-%s\" %n", "target/snapshot", UUID.randomUUID().toString())
     ).withFallback(ConfigFactory.load("application-test.conf"));
   }
 
@@ -46,7 +47,7 @@ public class RegionTest {
                 Region.create(entityContext.getEntityId(), clusterSharding)
         )
     );
-    testKit.system().log().info("Cluster node {}", Cluster.get(testKit.system()).selfMember());
+    testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
   }
 
   @Test
@@ -209,17 +210,17 @@ public class RegionTest {
     );
   }
 
-  private WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng) {
+  private static WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng) {
     return regionAtLatLng(zoom, latLng, WorldMap.regionForZoom0());
   }
 
-  private WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng, WorldMap.Region region) {
+  private static WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng, WorldMap.Region region) {
     if (zoom == region.zoom) {
       return region;
     }
     List<WorldMap.Region> subRegions = subRegionsFor(region);
-    Optional<WorldMap.Region> subRegion = subRegions.stream().filter(r -> r.isInside(latLng)).findFirst();
-    return subRegion.map(value -> regionAtLatLng(zoom, latLng, value)).orElse(null);
+    Optional<WorldMap.Region> subRegionOpt = subRegions.stream().filter(r -> r.isInside(latLng)).findFirst();
+    return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
   private List<List<WorldMap.Region>> zoomRegions() {
