@@ -18,6 +18,16 @@ interface WorldMap {
         region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
   }
 
+  static Region regionForEntityId(String entityId) {
+    String[] fields = entityId.split(":");
+    int zoom = Integer.parseInt(fields[1]);
+    double topLeftLat = Double.parseDouble(fields[2]);
+    double topLeftLng = Double.parseDouble(fields[3]);
+    double botRightLat = Double.parseDouble(fields[4]);
+    double botRightLng = Double.parseDouble(fields[5]);
+    return new WorldMap.Region(zoom, topLeft(topLeftLat, topLeftLng), botRight(botRightLat, botRightLng));
+  }
+
   static LatLng topLeft(double lat, double lng) {
     return new LatLng(lat, lng);
   }
@@ -72,16 +82,6 @@ interface WorldMap {
       regions.add(region(region.zoom + 1, topLeft, botRight));
     }));
     return regions;
-  }
-
-  static Region regionForEntityId(String entityId) {
-    String[] fields = entityId.split(":");
-    int zoom = Integer.parseInt(fields[1]);
-    double topLeftLat = Double.parseDouble(fields[2]);
-    double topLeftLng = Double.parseDouble(fields[3]);
-    double botRightLat = Double.parseDouble(fields[4]);
-    double botRightLng = Double.parseDouble(fields[5]);
-    return new WorldMap.Region(zoom, topLeft(topLeftLat, topLeftLng), botRight(botRightLat, botRightLng));
   }
 
   static Region regionAtLatLng(int zoom, LatLng latLng) {
@@ -175,6 +175,10 @@ interface WorldMap {
     boolean isInside(LatLng latLng) {
       return topLeft.lat >= latLng.lat && botRight.lat <= latLng.lat
           && topLeft.lng <= latLng.lng && botRight.lng >= latLng.lng;
+    }
+
+    boolean isDevice() {
+      return zoom == zoomMax; // devices are represented at finest zoom in level.
     }
 
     @Override
