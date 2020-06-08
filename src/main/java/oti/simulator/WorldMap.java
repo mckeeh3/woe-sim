@@ -1,6 +1,5 @@
 package oti.simulator;
 
-import akka.persistence.typed.PersistenceId;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -17,10 +16,6 @@ interface WorldMap {
   static String entityIdOf(Region region) {
     return String.format("region:%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
         region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
-  }
-
-  static PersistenceId persistenceIdOf(Region region) {
-    return PersistenceId.ofUniqueId(entityIdOf(region));
   }
 
   static LatLng topLeft(double lat, double lng) {
@@ -49,7 +44,7 @@ interface WorldMap {
   static List<Region> subRegionsFor(Region region) {
     switch (region.zoom) {
       case 0:
-        return subRegionsForZoom0(region);
+        return subRegionsForZoom0();
       case 1:
       case 2:
         return subRegionsForZoomX(region, 3);
@@ -58,7 +53,7 @@ interface WorldMap {
     }
   }
 
-  private static List<Region> subRegionsForZoom0(Region region) {
+  private static List<Region> subRegionsForZoom0() {
     List<Region> regions = new ArrayList<>();
     regions.add(region(1, topLeft(90, -180), botRight(-90, 0)));
     regions.add(region(1, topLeft(90, 0), botRight(-90, 180)));
@@ -71,13 +66,11 @@ interface WorldMap {
     if (region.zoom >= zoomMax) {
       return regions;
     }
-    IntStream.range(0, splits).forEach(latIndex -> {
-      IntStream.range(0, splits).forEach(lngIndex -> {
-        final LatLng topLeft = topLeft(region.topLeft.lat - latIndex * length, region.topLeft.lng + lngIndex * length);
-        final LatLng botRight = botRight(region.topLeft.lat - (latIndex + 1) * length, region.topLeft.lng + (lngIndex + 1) * length);
-        regions.add(region(region.zoom + 1, topLeft, botRight));
-      });
-    });
+    IntStream.range(0, splits).forEach(latIndex -> IntStream.range(0, splits).forEach(lngIndex -> {
+      final LatLng topLeft = topLeft(region.topLeft.lat - latIndex * length, region.topLeft.lng + lngIndex * length);
+      final LatLng botRight = botRight(region.topLeft.lat - (latIndex + 1) * length, region.topLeft.lng + (lngIndex + 1) * length);
+      regions.add(region(region.zoom + 1, topLeft, botRight));
+    }));
     return regions;
   }
 

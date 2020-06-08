@@ -59,7 +59,9 @@ public class HttpServerTest {
     );
     testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
 
-    httpServer = HttpServer.start("localhost", 28080, testKit.system());
+    String host = testKit.system().settings().config().getString("oti.http.host");
+    int port = testKit.system().settings().config().getInt("oti.http.port");
+    httpServer = HttpServer.start(host, port, testKit.system());
   }
 
   @Test

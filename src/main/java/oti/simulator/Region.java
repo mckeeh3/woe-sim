@@ -38,17 +38,17 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   interface Command extends CborSerializable {
   }
 
-  enum SelectionAction {
-    create, delete, happy, sad
-  }
-
   public abstract static class SelectionCommand implements Command {
-    public final SelectionAction action;
+    enum Action {
+      create, delete, happy, sad
+    }
+
+    public final Action action;
     public final WorldMap.Region region;
     public final ActorRef<Command> replyTo;
 
     @JsonCreator
-    public SelectionCommand(@JsonProperty("action") SelectionAction action, @JsonProperty("region") WorldMap.Region region,
+    public SelectionCommand(@JsonProperty("action") Action action, @JsonProperty("region") WorldMap.Region region,
                             @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       this.action = action;
       this.region = region;
@@ -64,41 +64,25 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   public static final class SelectionCreate extends SelectionCommand {
     @JsonCreator
     public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(SelectionAction.create, region, replyTo);
-    }
-
-    public SelectionCreate(WorldMap.Region region) {
-      super(SelectionAction.create, region, null);
+      super(Action.create, region, replyTo);
     }
   }
 
   static final class SelectionDelete extends SelectionCommand {
     SelectionDelete(WorldMap.Region region, ActorRef<Command> replyTo) {
-      super(SelectionAction.delete, region, replyTo);
-    }
-
-    public SelectionDelete(WorldMap.Region region) {
-      super(SelectionAction.delete, region, null);
+      super(Action.delete, region, replyTo);
     }
   }
 
   static final class SelectionHappy extends SelectionCommand {
     SelectionHappy(WorldMap.Region region, ActorRef<Command> replyTo) {
-      super(SelectionAction.happy, region, replyTo);
-    }
-
-    public SelectionHappy(WorldMap.Region region) {
-      super(SelectionAction.happy, region, null);
+      super(Action.happy, region, replyTo);
     }
   }
 
   static final class SelectionSad extends SelectionCommand {
     SelectionSad(WorldMap.Region region, ActorRef<Command> replyTo) {
-      super(SelectionAction.sad, region, replyTo);
-    }
-
-    public SelectionSad(WorldMap.Region region) {
-      super(SelectionAction.sad, region, null);
+      super(Action.sad, region, replyTo);
     }
   }
 
@@ -106,11 +90,11 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class SelectionAccepted implements Event {
-    public final SelectionAction action;
+    public final SelectionCommand.Action action;
     public final WorldMap.Region region;
 
     @JsonCreator
-    SelectionAccepted(@JsonProperty("action") SelectionAction action, @JsonProperty("region") WorldMap.Region region) {
+    SelectionAccepted(@JsonProperty("action") SelectionCommand.Action action, @JsonProperty("region") WorldMap.Region region) {
       this.action = action;
       this.region = region;
     }
@@ -129,44 +113,83 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       this.region = region;
     }
 
-    void add(WorldMap.Region region) {
-      if (isSuperRegion(region)) {
+    void create(WorldMap.Region regionCreate) {
+      if (isContainedWithin(regionCreate)) {
         currentSelections.clear();
-        currentSelections.add(region);
-      } else if (isSubRegion(region)) {
-        currentSelections.removeIf(region::contains);
-        currentSelections.add(region);
+        currentSelections.add(regionCreate);
+      } else if (isContainerOf(regionCreate)) {
+        currentSelections.removeIf(regionCreate::contains);
+        currentSelections.add(regionCreate);
       }
     }
 
-    boolean isSuperRegion(WorldMap.Region region) {
+    void delete(WorldMap.Region regionDelete) {
+      if (isContainedWithin(regionDelete)) {
+        currentSelections.clear();
+      } else if (isContainerOf(regionDelete)) {
+        currentSelections.removeIf(regionDelete::contains);
+      }
+    }
+
+    boolean isContainedWithin(WorldMap.Region region) {
       return region.contains(this.region);
     }
 
-    boolean isSubRegion(WorldMap.Region region) {
-      return this.region.contains(region) && isSelectionVisible(region);
+    boolean isContainerOf(WorldMap.Region region) {
+      return this.region.contains(region);
     }
 
-    private boolean isSelectionVisible(WorldMap.Region region) {
+    boolean isContainerOfVisible(WorldMap.Region region) {
+      return isContainerOf(region) && isVisible(region);
+    }
+
+    private boolean isVisible(WorldMap.Region region) {
       return currentSelections.stream().noneMatch(currentRegion -> currentRegion.contains(region));
     }
   }
 
   static final class State implements CborSerializable {
+    enum Status {
+      happy, sad, neutral
+    }
+
     final WorldMap.Region region;
     final Selections selections;
+    Status status;
 
     State(WorldMap.Region region) {
       this.region = region;
       selections = new Selections(region);
+      status = region.zoom == WorldMap.zoomMax ? Status.happy : Status.neutral;
     }
 
     boolean isNewSelection(SelectionCommand selectionCommand) {
-      return selections.isSuperRegion(selectionCommand.region) || selections.isSubRegion(selectionCommand.region);
+      switch (selectionCommand.action) {
+        case create:
+          return selections.isContainedWithin(selectionCommand.region) || selections.isContainerOfVisible(selectionCommand.region);
+        case delete:
+        case happy:
+        case sad:
+          return selections.isContainedWithin(selectionCommand.region) || selections.isContainerOf(selectionCommand.region);
+        default:
+          return false;
+      }
     }
 
     State addSelection(SelectionAccepted selectionAccepted) {
-      selections.add(selectionAccepted.region);
+      switch (selectionAccepted.action) {
+        case create:
+          selections.create(selectionAccepted.region);
+          break;
+        case delete:
+          selections.delete(selectionAccepted.region);
+          break;
+        case happy:
+          status = region.zoom == WorldMap.zoomMax ? Status.happy : Status.neutral;
+          break;
+        case sad:
+          status = region.zoom == WorldMap.zoomMax ? Status.sad : Status.neutral;
+      }
       return this;
     }
   }
@@ -190,9 +213,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       return Effect().persist(selectionAccepted)
           .thenRun(newState -> eventPersisted(newState, selectionCommand));
     } else {
-      log().debug("{} rejected {}", region, selectionCommand);
+      return Effect().none();
     }
-    return Effect().none();
   }
 
   private void eventPersisted(State state, SelectionCommand selectionCommand) {

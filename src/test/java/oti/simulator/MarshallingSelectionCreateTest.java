@@ -29,7 +29,7 @@ public class MarshallingSelectionCreateTest extends JUnitRouteTest {
             .withEntity(
                 HttpEntities.create(ContentTypes.APPLICATION_JSON, toJson(selectionCreate))
             )
-    ).assertEntity("SelectionCreate[create, Selection[Region[zoom 0, topLeft LatLng[lat 90.000000, lng -180.000000], botRight LatLng[lat -90.000000, lng 180.000000]]]]");
+    ).assertEntity("SelectionCreate[create, Region[zoom 0, topLeft LatLng[lat 90.000000, lng -180.000000], botRight LatLng[lat -90.000000, lng 180.000000]]]");
   }
 
   private static String toJson(Object pojo) {

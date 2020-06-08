@@ -104,7 +104,6 @@ public class RegionTest {
     testKit.system().log().debug("exit createZoom16Selection");
   }
 
-  @Ignore
   @Test
   public void createZoom15Selection() {
     testKit.system().log().debug("enter createZoom15Selection");
@@ -122,6 +121,7 @@ public class RegionTest {
     testKit.system().log().debug("exit createZoom15Selection");
   }
 
+  @Ignore
   @Test
   public void createZoom10Selection() {
     testKit.system().log().debug("enter createZoom10Selection");
@@ -176,7 +176,7 @@ public class RegionTest {
   }
 
   @Test
-  public void selectionsListLargerContainingSelectionsOverrideSmallerSelections() {
+  public void selectionCreateWithLargerContainingSelectionsOverrideSmallerSelections() {
     List<List<WorldMap.Region>> zoomRegions = zoomRegions();
 
     WorldMap.Region selectionZoom4 = zoomRegions.get(3).get(0);
@@ -186,19 +186,49 @@ public class RegionTest {
     Region.Selections selections = new Region.Selections(selectionZoom5);
 
     // add 4 non-overlapping sub-selections
-    subRegionsFor(selectionZoom6).forEach(selections::add);
+    subRegionsFor(selectionZoom6).forEach(selections::create);
 
     assertEquals(4, selections.currentSelections.size());
 
     // add selection that contains the current 4 sub-selections
     // causing them to be removed and replaced by the new selection
-    selections.add(selectionZoom6);
+    selections.create(selectionZoom6);
 
     assertEquals(1, selections.currentSelections.size());
 
-    selections.add(selectionZoom4);
+    selections.create(selectionZoom4);
 
     assertEquals(1, selections.currentSelections.size());
+  }
+
+  @Test
+  public void selectionDeleteWithSmallerDeleteRegionThanCurrentSelections() {
+    List<List<WorldMap.Region>> zoomRegions = zoomRegions();
+
+    WorldMap.Region selectionZoom15 = zoomRegions.get(14).get(0);
+    Region.Selections selections = new Region.Selections(selectionZoom15);
+
+    zoomRegions.get(15).forEach(selections::create);
+    assertEquals(4, selections.currentSelections.size());
+
+    WorldMap.Region selectionZoom17 = zoomRegions.get(16).get(0);
+    selections.delete(selectionZoom17);
+    assertEquals(4, selections.currentSelections.size());
+  }
+
+  @Test
+  public void selectionDeleteWithLargerDeleteRegionThanCurrentSelections() {
+    List<List<WorldMap.Region>> zoomRegions = zoomRegions();
+
+    WorldMap.Region selectionZoom15 = zoomRegions.get(14).get(0);
+    Region.Selections selections = new Region.Selections(selectionZoom15);
+
+    zoomRegions.get(15).forEach(selections::create);
+    assertEquals(4, selections.currentSelections.size());
+
+    WorldMap.Region selectionZoom14 = zoomRegions.get(13).get(0);
+    selections.delete(selectionZoom14);
+    assertEquals(0, selections.currentSelections.size());
   }
 
   private void clusterShardingInit(ClusterSharding clusterSharding) {
@@ -223,6 +253,9 @@ public class RegionTest {
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
+  // Create a stack of regions from region 0, the entire earth, to region 18, the smallest region.
+  // Each list item is a list of sub-regions of the region above by zoom levels.
+  // Each list item's sub-region list is created by selecting the sub-regions from item 0 from he prior list.
   private List<List<WorldMap.Region>> zoomRegions() {
     List<List<WorldMap.Region>> zoomRegions = new ArrayList<>();
 
