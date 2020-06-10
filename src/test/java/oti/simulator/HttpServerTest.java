@@ -114,16 +114,6 @@ public class HttpServerTest {
     });
   }
 
-  private static HttpResponse readFile(String filename) {
-    return Http.get(testKit.system().classicSystem())
-        .singleRequest(HttpRequest.GET(String.format("http://localhost:28080/%s", filename)))
-        .toCompletableFuture().join();
-  }
-
-  private static Materializer materializer() {
-    return Materializer.matFromSystem(testKit.system().classicSystem());
-  }
-
   @Ignore
   @Test
   public void thatSelectionCreateIsSerializable() {
@@ -168,6 +158,17 @@ public class HttpServerTest {
     }
   }
 
+  private static Materializer materializer() {
+    return Materializer.matFromSystem(testKit.system().classicSystem());
+  }
+
+  private static String entityAsString(HttpResponse httpResponse, Materializer materializer) {
+    return httpResponse.entity().getDataBytes()
+        .runReduce(ByteString::concat, materializer)
+        .thenApply(ByteString::utf8String)
+        .toCompletableFuture().join();
+  }
+
   private static CompletionStage<ServerBinding> httpServer(String host, int port) {
     ActorSystem actorSystem = testKit.system().classicSystem();
 
@@ -194,12 +195,5 @@ public class HttpServerTest {
             )
         ))
     );
-  }
-
-  private static String entityAsString(HttpResponse httpResponse, Materializer materializer) {
-    return httpResponse.entity().getDataBytes()
-        .runReduce(ByteString::concat, materializer)
-        .thenApply(ByteString::utf8String)
-        .toCompletableFuture().join();
   }
 }
