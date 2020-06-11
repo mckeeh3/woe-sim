@@ -1,5 +1,6 @@
 package oti.simulator;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -389,6 +390,16 @@ public class WorldMapTest {
       IntStream.range(0, zoomRegions.get(zoom).size()).forEach(srIdx -> {
         assertTrue(zoomRegions.get(zoom - 1).get(0).contains(zoomRegions.get(zoom).get(srIdx)));
       });
+    });
+  }
+
+  // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.
+  @Ignore
+  @Test
+  public void calculateIotDevicesSelectedPerZoomLevel() {
+    IntStream.range(0, 16).forEach(zoom -> {
+      double devices = Math.pow(4, zoom);
+      System.out.printf("Zoom %2d %,1.0f%n", 18 - zoom, devices);
     });
   }
 

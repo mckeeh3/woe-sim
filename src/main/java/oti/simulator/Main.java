@@ -6,6 +6,11 @@ import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
+import akka.management.cluster.bootstrap.ClusterBootstrap;
+import akka.management.javadsl.AkkaManagement;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class Main {
   public static Behavior<Void> create() {
@@ -17,8 +22,10 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    ActorSystem<Void> actorSystem = ActorSystem.create(Main.create(), "OTI Simulator");
+    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "OTI-Simulator");
     ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
+    startClusterBootstrap(actorSystem);
+    startHttpServer(actorSystem);
 
     clusterSharding.init(
         Entity.of(
@@ -27,6 +34,21 @@ public class Main {
                 Region.create(entityContext.getEntityId(), clusterSharding)
         )
     );
+  }
+
+  private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
+    AkkaManagement.get(actorSystem.classicSystem()).start();
+    ClusterBootstrap.get(actorSystem.classicSystem()).start();
+  }
+
+  static void startHttpServer(ActorSystem<?> actorSystem) {
+    try {
+      String host = InetAddress.getLocalHost().getHostName();
+      int port = actorSystem.settings().config().getInt("oti.simulator.http.server.port");
+      HttpServer.start(host, port, actorSystem);
+    } catch (UnknownHostException e) {
+      actorSystem.log().error("Http server start failure.", e);
+    }
   }
 }
 

@@ -20,18 +20,18 @@ import static oti.simulator.WorldMap.entityIdOf;
 import static oti.simulator.WorldMap.regionForZoom0;
 
 class HttpServer {
-  private final ActorSystem<Void> actorSystem;
+  private final ActorSystem<?> actorSystem;
   private final ClusterSharding clusterSharding;
   private ActorRef<Region.Command> replyTo; // hack for unit testing
 
-  private HttpServer(String host, int port, ActorSystem<Void> actorSystem) {
+  private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
     this.actorSystem = actorSystem;
     clusterSharding = ClusterSharding.get(actorSystem);
 
     startHttpServer(host, port);
   }
 
-  static HttpServer start(String host, int port, ActorSystem<Void> actorSystem) {
+  static HttpServer start(String host, int port, ActorSystem<?> actorSystem) {
     return new HttpServer(host, port, actorSystem);
   }
 
@@ -41,6 +41,8 @@ class HttpServer {
     Http.get(actorSystem.classicSystem())
         .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
             ConnectHttp.toHost(host, port), materializer);
+
+    log().info("HTTP Server started on {}:{}", host, "" + port);
   }
 
   private Route route() {
