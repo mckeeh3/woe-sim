@@ -93,7 +93,7 @@ interface WorldMap {
       return region;
     }
     List<Region> subRegions = subRegionsFor(region);
-    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.isInside(latLng)).findFirst();
+    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
@@ -169,10 +169,10 @@ interface WorldMap {
     }
 
     boolean contains(Region region) {
-      return isInside(region.topLeft) && isInside(region.botRight);
+      return contains(region.topLeft) && contains(region.botRight);
     }
 
-    boolean isInside(LatLng latLng) {
+    boolean contains(LatLng latLng) {
       return topLeft.lat >= latLng.lat && botRight.lat <= latLng.lat
           && topLeft.lng <= latLng.lng && botRight.lng >= latLng.lng;
     }

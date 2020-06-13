@@ -249,7 +249,7 @@ public class RegionTest {
       return region;
     }
     List<WorldMap.Region> subRegions = subRegionsFor(region);
-    Optional<WorldMap.Region> subRegionOpt = subRegions.stream().filter(r -> r.isInside(latLng)).findFirst();
+    Optional<WorldMap.Region> subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
