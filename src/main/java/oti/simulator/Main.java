@@ -22,7 +22,7 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "OTI-Simulator");
+    ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "oti-sim");
     ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
