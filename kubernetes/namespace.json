@@ -1,0 +1,11 @@
+{
+  "kind": "Namespace",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "oti-sim-1",
+    "labels": {
+      "name": "oti-sim-1"
+    }
+  }
+}
+

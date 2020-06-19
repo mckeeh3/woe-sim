@@ -24,18 +24,18 @@ class HttpServer {
   private final ClusterSharding clusterSharding;
   private ActorRef<Region.Command> replyTo; // hack for unit testing
 
-  private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
-    this.actorSystem = actorSystem;
-    clusterSharding = ClusterSharding.get(actorSystem);
-
-    startHttpServer(host, port);
-  }
-
   static HttpServer start(String host, int port, ActorSystem<?> actorSystem) {
     return new HttpServer(host, port, actorSystem);
   }
 
-  private void startHttpServer(String host, int port) {
+  private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
+    this.actorSystem = actorSystem;
+    clusterSharding = ClusterSharding.get(actorSystem);
+
+    start(host, port);
+  }
+
+  private void start(String host, int port) {
     Materializer materializer = Materializer.matFromSystem(actorSystem);
 
     Http.get(actorSystem.classicSystem())

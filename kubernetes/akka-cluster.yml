@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: oti-sim
-          image: akka-sample-cluster-kubernetes:latest
+          image: oti-sim:latest
           # remove for real clusters, useful for minikube
           imagePullPolicy: Never
           readinessProbe:
@@ -49,11 +49,10 @@ spec:
               protocol: TCP
           resources:
             limits:
-              memory: 4Gi
-              request: 4Gi
+              memory: 8Gi
             requests:
-              cpu: 4
-              memory: 4Gi
+              cpu: 1
+              memory: 1Gi
           env:
             - name: NAMESPACE
               valueFrom:
@@ -61,6 +60,16 @@ spec:
                   fieldPath: metadata.namespace
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
+            - name: cassandra_host_port_1
+              value: "yb-tservers.yb-demo.svc.cluster.local:9042"
+            - name: oti_simulator_http_server_host
+              value: "oti-sim.oti-sim-1.svc.cluster.local"
+            - name: oti_simulator_http_server_port
+              value: "8080"
+            - name: oti_twin_http_server_host
+              value: "oti-twin.oti-twin-1.svc.cluster.local"
+            - name: oti_twin_http_server_port
+              value: "8080"
 
 ---
 kind: Role
