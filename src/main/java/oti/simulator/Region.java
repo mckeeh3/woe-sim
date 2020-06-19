@@ -22,6 +22,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   final WorldMap.Region region;
   final ClusterSharding clusterSharding;
   final ActorContext<Command> actorContext;
+  final HttpClient httpClient;
   static final EntityTypeKey<Command> entityTypeKey = EntityTypeKey.create(Command.class, Region.class.getSimpleName());
 
   static Behavior<Command> create(String entityId, ClusterSharding clusterSharding) {
@@ -34,6 +35,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     this.region = WorldMap.regionForEntityId(entityId);
     this.clusterSharding = clusterSharding;
     this.actorContext = actorContext;
+    this.httpClient = new HttpClient(actorContext.getSystem());
   }
 
   @Override
@@ -80,6 +82,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private void notifyTwin(SelectionCommand selectionCommand) {
+    if (region.zoom == WorldMap.zoomMax) {
+      httpClient.post(selectionCommand);
+    }
     // TODO
     //final Http http = Http.get(actorContext.getSystem().classicSystem());
     //actorContext.pipeToSelf(http.singleRequest(HttpRequest.create("")), (res, t) -> {

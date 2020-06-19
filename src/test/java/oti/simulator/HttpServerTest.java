@@ -1,17 +1,12 @@
 package oti.simulator;
 
-import akka.actor.ActorSystem;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.testkit.typed.javadsl.TestProbe;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
-import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
-import akka.http.javadsl.ServerBinding;
-import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.*;
-import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,9 +22,7 @@ import org.junit.Test;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.CompletionStage;
 
-import static akka.http.javadsl.server.Directives.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static oti.simulator.WorldMap.regionForZoom0;
 
@@ -167,33 +160,5 @@ public class HttpServerTest {
         .runReduce(ByteString::concat, materializer)
         .thenApply(ByteString::utf8String)
         .toCompletableFuture().join();
-  }
-
-  private static CompletionStage<ServerBinding> httpServer(String host, int port) {
-    ActorSystem actorSystem = testKit.system().classicSystem();
-
-    return Http.get(actorSystem.classicSystem())
-        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer()),
-            ConnectHttp.toHost(host, port), materializer());
-  }
-
-  private static Route route() {
-    return concat(
-        path("application-test.conf", () -> getFromResource("application-test.conf", ContentTypes.TEXT_PLAIN_UTF8)),
-        path("logback-test.xml", () -> getFromResource("logback-test.xml", ContentTypes.TEXT_XML_UTF8)),
-        path("selection-create", () -> concat(
-            get(() -> {
-              WorldMap.Region selection = regionForZoom0();
-              Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
-              return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
-            }),
-            post(() -> entity(
-                Jackson.unmarshaller(Region.SelectionCreate.class),
-                selectionCreate -> {
-                  return complete(StatusCodes.CREATED, selectionCreate, Jackson.marshaller());
-                })
-            )
-        ))
-    );
   }
 }
