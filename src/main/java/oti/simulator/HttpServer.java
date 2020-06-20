@@ -63,9 +63,9 @@ class HttpServer {
             selectionActionRequest -> {
               try {
                 submit(selectionActionRequest);
-                return complete(StatusCodes.OK, SelectionActionResponse.ok(selectionActionRequest), Jackson.marshaller());
+                return complete(StatusCodes.OK, SelectionActionResponse.ok(StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller());
               } catch (IllegalArgumentException e) {
-                return complete(StatusCodes.BAD_REQUEST, SelectionActionResponse.failed(selectionActionRequest), Jackson.marshaller());
+                return complete(StatusCodes.BAD_REQUEST, SelectionActionResponse.failed(e.getMessage(), StatusCodes.BAD_REQUEST.intValue(), selectionActionRequest), Jackson.marshaller());
               }
             }
         )
@@ -126,22 +126,25 @@ class HttpServer {
 
   public static class SelectionActionResponse {
     public final String message;
+    public final int httpStatusCode;
     public final SelectionActionRequest selectionActionRequest;
 
     @JsonCreator
     public SelectionActionResponse(
         @JsonProperty("message") String message,
+        @JsonProperty("httpStatusCode") int httpStatusCode,
         @JsonProperty("selectionActionRequest") SelectionActionRequest selectionActionRequest) {
       this.message = message;
+      this.httpStatusCode = httpStatusCode;
       this.selectionActionRequest = selectionActionRequest;
     }
 
-    static SelectionActionResponse ok(SelectionActionRequest selectionActionRequest) {
-      return new SelectionActionResponse("Accepted", selectionActionRequest);
+    static SelectionActionResponse ok(int httpStatusCode, SelectionActionRequest selectionActionRequest) {
+      return new SelectionActionResponse("Accepted", httpStatusCode, selectionActionRequest);
     }
 
-    static SelectionActionResponse failed(SelectionActionRequest selectionActionRequest) {
-      return new SelectionActionResponse("Invalid action", selectionActionRequest);
+    static SelectionActionResponse failed(String message, int httpStatusCode, SelectionActionRequest selectionActionRequest) {
+      return new SelectionActionResponse(message, httpStatusCode, selectionActionRequest);
     }
   }
 

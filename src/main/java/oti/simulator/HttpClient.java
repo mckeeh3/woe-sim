@@ -2,16 +2,17 @@ package oti.simulator;
 
 import akka.actor.typed.ActorSystem;
 import akka.http.javadsl.Http;
-import akka.http.javadsl.model.ContentTypes;
-import akka.http.javadsl.model.HttpEntities;
-import akka.http.javadsl.model.HttpEntity;
-import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.marshallers.jackson.Jackson;
+import akka.http.javadsl.model.*;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 class HttpClient {
   private final ActorSystem<?> actorSystem;
@@ -28,19 +29,20 @@ class HttpClient {
     this.url = url;
   }
 
-  void post(Region.SelectionCommand selectionCommand) {
-    post(new TelemetryRequest(selectionCommand.action.name(), selectionCommand.region));
+  CompletionStage<TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
+    return post(new TelemetryRequest(selectionCommand.action.name(), selectionCommand.region));
   }
 
-  private void post(TelemetryRequest telemetryRequest) {
-    Http.get(actorSystem.classicSystem())
+  private CompletionStage<TelemetryResponse> post(TelemetryRequest telemetryRequest) {
+    return Http.get(actorSystem.classicSystem())
         .singleRequest(HttpRequest.POST(url)
             .withEntity(toHttpEntity(telemetryRequest)))
-        .handle((r, t) -> {
-          if (t != null) {
-            actorSystem.log().error("", t);
+        .thenCompose(r -> {
+          if (r.status().isSuccess()) {
+            return Jackson.unmarshaller(TelemetryResponse.class).unmarshal(r.entity(), materializer);
+          } else {
+            return CompletableFuture.completedFuture(new TelemetryResponse(r.status().reason(), r.status().intValue(), telemetryRequest));
           }
-          return r.discardEntityBytes(materializer);
         });
   }
 
@@ -81,13 +83,16 @@ class HttpClient {
 
   public static class TelemetryResponse {
     public final String message;
+    public final int httpStatusCode;
     public final TelemetryRequest telemetryRequest;
 
     @JsonCreator
     public TelemetryResponse(
         @JsonProperty("message") String message,
+        @JsonProperty("httpStatusCode") int httpStatusCode,
         @JsonProperty("deviceTelemetryRequest") TelemetryRequest telemetryRequest) {
       this.message = message;
+      this.httpStatusCode = httpStatusCode;
       this.telemetryRequest = telemetryRequest;
     }
   }

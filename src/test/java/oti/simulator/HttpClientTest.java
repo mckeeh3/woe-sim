@@ -6,7 +6,7 @@ import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.ContentTypes;
+import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
@@ -22,6 +22,9 @@ import static akka.http.javadsl.server.Directives.*;
 import static akka.http.javadsl.server.Directives.complete;
 import static oti.simulator.WorldMap.regionForZoom0;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static oti.simulator.WorldMap.*;
+
 public class HttpClientTest {
 
   @ClassRule
@@ -35,10 +38,22 @@ public class HttpClientTest {
   }
 
   @Test
-  public void t() {
+  public void postPostToResponseWorks() {
     httpServer("localhost", 28080);
     final HttpClient httpClient = new HttpClient(testKit.system(), "http://localhost:28080/telemetry");
-    httpClient.post(new Region.SelectionCreate(WorldMap.regionForZoom0(), null));
+    // London across Westminster Bridge at Park Plaza Hotel
+    final WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
+    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(region, null);
+    final HttpClient.TelemetryResponse telemetryResponse = httpClient.post(selectionCreate)
+        .toCompletableFuture().join();
+
+    assertEquals(201, telemetryResponse.httpStatusCode);
+
+    assertEquals(selectionCreate.region.zoom, telemetryResponse.telemetryRequest.zoom);
+    assertEquals(selectionCreate.region.topLeft.lat, telemetryResponse.telemetryRequest.topLeftLat);
+    assertEquals(selectionCreate.region.topLeft.lng, telemetryResponse.telemetryRequest.topLeftLng);
+    assertEquals(selectionCreate.region.botRight.lat, telemetryResponse.telemetryRequest.botRightLat);
+    assertEquals(selectionCreate.region.botRight.lng, telemetryResponse.telemetryRequest.botRightLng);
   }
 
   private static CompletionStage<ServerBinding> httpServer(String host, int port) {
@@ -60,7 +75,7 @@ public class HttpClientTest {
             post(() -> entity(
                 Jackson.unmarshaller(HttpClient.TelemetryRequest.class),
                 telemetryRequest -> {
-                  final HttpClient.TelemetryResponse telemetryResponse = new HttpClient.TelemetryResponse("ok", telemetryRequest);
+                  final HttpClient.TelemetryResponse telemetryResponse = new HttpClient.TelemetryResponse("ok", StatusCodes.CREATED.intValue(), telemetryRequest);
                   return complete(StatusCodes.CREATED, telemetryResponse, Jackson.marshaller());
                 })
             )
