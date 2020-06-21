@@ -6,7 +6,6 @@ import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
@@ -19,14 +18,11 @@ import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 import static akka.http.javadsl.server.Directives.*;
-import static akka.http.javadsl.server.Directives.complete;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static oti.simulator.WorldMap.regionAtLatLng;
 import static oti.simulator.WorldMap.regionForZoom0;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static oti.simulator.WorldMap.*;
-
 public class HttpClientTest {
-
   @ClassRule
   public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
 
@@ -38,7 +34,7 @@ public class HttpClientTest {
   }
 
   @Test
-  public void postPostToResponseWorks() {
+  public void postToResponseWorks() {
     httpServer("localhost", 28080);
     final HttpClient httpClient = new HttpClient(testKit.system(), "http://localhost:28080/telemetry");
     // London across Westminster Bridge at Park Plaza Hotel

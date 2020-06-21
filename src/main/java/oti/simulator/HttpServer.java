@@ -47,11 +47,6 @@ class HttpServer {
 
   private Route route() {
     return concat(
-        path("", () -> getFromResource("oti.html", ContentTypes.TEXT_HTML_UTF8)),
-        path("oti.html", () -> getFromResource("oti.html", ContentTypes.TEXT_HTML_UTF8)),
-        path("oti.js", () -> getFromResource("oti.js", ContentTypes.APPLICATION_JSON)),
-        path("p5.js", () -> getFromResource("p5.js", ContentTypes.APPLICATION_JSON)),
-        path("mappa.js", () -> getFromResource("mappa.js", ContentTypes.APPLICATION_JSON)),
         path("selection", this::handleSelectionActionPost)
     );
   }
