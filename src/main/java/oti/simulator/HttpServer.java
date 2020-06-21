@@ -7,7 +7,6 @@ import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.ContentTypes;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;

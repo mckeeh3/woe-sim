@@ -46,7 +46,10 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   @Override
   public CommandHandler<Command, Event, State> commandHandler() {
     return newCommandHandlerBuilder().forAnyState()
-        .onCommand(SelectionCommand.class, this::onAddSelection)
+        .onCommand(SelectionCreate.class, this::onSelectionCreate)
+        .onCommand(SelectionDelete.class, this::onSelectionDelete)
+        .onCommand(SelectionHappy.class, this::onSelectionHappyOrSad)
+        .onCommand(SelectionSad.class, this::onSelectionHappyOrSad)
         .build();
   }
 
@@ -62,7 +65,54 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     return Recovery.withSnapshotSelectionCriteria(SnapshotSelectionCriteria.none());
   }
 
-  private Effect<Event, State> onAddSelection(State state, SelectionCommand selectionCommand) {
+  private Effect<Event, State> onSelectionCreate(State state, SelectionCreate selectionCreate) {
+    if (state.doesSelectionOverlapRegion(selectionCreate)) {
+      if (state.isPartialSelection(selectionCreate) && state.isNotSelected()) {
+        return acceptSelection(selectionCreate);
+      } else if (state.isFullSelection(selectionCreate) && (state.isNotSelected() || state.isPartiallySelected())) {
+        return acceptSelection(selectionCreate);
+      } else {
+        forwardSelectionToSubRegions(state, selectionCreate);
+        return Effect().none();
+      }
+    } else {
+      return Effect().none();
+    }
+  }
+
+  private Effect<Event, State> onSelectionDelete(State state, SelectionDelete selectionDelete) {
+    if (state.doesSelectionOverlapRegion(selectionDelete)) {
+      if (state.isFullySelected()) {
+        return acceptSelection(selectionDelete);
+      } else if (state.isFullSelection(selectionDelete) & state.isPartiallySelected()) {
+        return acceptSelection(selectionDelete);
+      } else {
+        forwardSelectionToSubRegions(state, selectionDelete);
+        return Effect().none();
+      }
+    } else {
+      return Effect().none();
+    }
+  }
+
+  private Effect<Event, State> onSelectionHappyOrSad(State state, SelectionCommand selectionHappyOrSad) {
+    if (state.isPartiallySelected() || state.isFullySelected()) {
+      if (state.region.isDevice()) {
+        notifyTwin(state, selectionHappyOrSad);
+      } else {
+        forwardSelectionToSubRegions(state, selectionHappyOrSad);
+      }
+    }
+    return Effect().none();
+  }
+
+  private Effect<Event, State> acceptSelection(SelectionCommand selectionCommand) {
+    SelectionAccepted selectionAccepted = new SelectionAccepted(selectionCommand.action, selectionCommand.region);
+    return Effect().persist(selectionAccepted)
+        .thenRun(newState -> eventPersisted(newState, selectionCommand));
+  }
+
+  private Effect<Event, State> onSelectionOLD(State state, SelectionCommand selectionCommand) {
     if (state.isNewSelection(selectionCommand)) {
       log().debug("{} accepted {}", region, selectionCommand);
       SelectionAccepted selectionAccepted = new SelectionAccepted(selectionCommand.action, selectionCommand.region);
@@ -75,20 +125,19 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   private void eventPersisted(State state, SelectionCommand selectionCommand) {
     if (region.isDevice() && selectionCommand.replyTo != null) {
-      selectionCommand.replyTo.tell(selectionCommand);
+      selectionCommand.replyTo.tell(selectionCommand); // hack for unit testing
     }
-    notifyTwin(selectionCommand);
-    forwardSelectionToSubRegions(state, selectionCommand);
+    if (state.region.isDevice()) {
+      notifyTwin(state, selectionCommand);
+    } else {
+      forwardSelectionToSubRegions(state, selectionCommand);
+    }
   }
 
-  private void notifyTwin(SelectionCommand selectionCommand) {
-    if (region.zoom == WorldMap.zoomMax) {
+  private void notifyTwin(State state, SelectionCommand selectionCommand) {
+    if (state.region.isDevice()) {
       httpClient.post(selectionCommand);
     }
-    // TODO
-    //final Http http = Http.get(actorContext.getSystem().classicSystem());
-    //actorContext.pipeToSelf(http.singleRequest(HttpRequest.create("")), (res, t) -> {
-    //});
   }
 
   private void forwardSelectionToSubRegions(State state, SelectionCommand selectionCommand) {
@@ -117,6 +166,14 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       this.action = action;
       this.region = region;
       this.replyTo = replyTo; // used for unit testing
+    }
+
+    boolean isCreate() {
+      return Action.create.equals(action);
+    }
+
+    boolean isDelete() {
+      return Action.delete.equals(action);
     }
 
     @Override
@@ -171,17 +228,64 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   static final class State implements CborSerializable {
     enum Status {
+      notSelected, partiallySelected, fullySelected
+    }
+
+    enum StatusOLD {
       happy, sad, neutral
+    }
+
+    boolean isNotSelected() {
+      return Status.notSelected.equals(status);
+    }
+
+    boolean isPartiallySelected() {
+      return Status.partiallySelected.equals(status);
+    }
+
+    boolean isFullySelected() {
+      return Status.fullySelected.equals(status);
+    }
+
+    boolean doesSelectionOverlapRegion(SelectionCommand selectionCommand) {
+      return region.overlaps(selectionCommand.region);
+    }
+
+    boolean doesSelectionContainRegion(SelectionCommand selectionCommand) {
+      return selectionCommand.region.contains(region);
+    }
+
+    boolean doesRegionContainSelection(SelectionCommand selectionCommand) {
+      return region.contains(selectionCommand.region);
+    }
+
+    boolean isPartialSelection(SelectionCommand selectionCommand) {
+      return region.contains(selectionCommand.region);
+    }
+
+    boolean isFullSelection(SelectionCommand selectionCommand) {
+      return selectionCommand.region.contains(region);
     }
 
     final WorldMap.Region region;
     final Selections selections;
+    StatusOLD statusOLD;
     Status status;
 
     State(WorldMap.Region region) {
       this.region = region;
       selections = new Selections(region);
-      status = region.isDevice() ? Status.happy : Status.neutral;
+      statusOLD = region.isDevice() ? StatusOLD.happy : StatusOLD.neutral;
+    }
+
+    void selected(SelectionCommand selectionCommand) {
+      if (selectionCommand.isCreate() || selectionCommand.isDelete()) {
+        if (doesSelectionContainRegion(selectionCommand)) {
+          status = Status.fullySelected;
+        } else if (doesRegionContainSelection(selectionCommand)) {
+          status = Status.partiallySelected;
+        }
+      }
     }
 
     boolean isNewSelection(SelectionCommand selectionCommand) {
@@ -206,10 +310,10 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
           selections.delete(selectionAccepted.region);
           break;
         case happy:
-          status = region.isDevice() ? Status.happy : Status.neutral;
+          statusOLD = region.isDevice() ? StatusOLD.happy : StatusOLD.neutral;
           break;
         case sad:
-          status = region.isDevice() ? Status.sad : Status.neutral;
+          statusOLD = region.isDevice() ? StatusOLD.sad : StatusOLD.neutral;
       }
       return this;
     }
