@@ -8,7 +8,7 @@
 
     <logger name="akka.cluster.sharding" level="INFO" />
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 

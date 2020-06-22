@@ -1,11 +1,20 @@
 package oti.simulator;
 
+import akka.actor.ActorSystem;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.testkit.typed.javadsl.TestProbe;
 import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
+import akka.http.javadsl.ConnectHttp;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.marshallers.jackson.Jackson;
+import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.model.headers.RawHeader;
+import akka.http.javadsl.server.Route;
+import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
@@ -18,13 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static akka.http.javadsl.server.Directives.*;
 import static oti.simulator.WorldMap.*;
 
 public class RegionTest {
   private static ClusterSharding clusterSharding;
+
 
   @ClassRule
   public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
@@ -48,6 +59,10 @@ public class RegionTest {
         )
     );
     testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
+
+    final String host = testKit.system().settings().config().getString("oti.twin.http.server.host");
+    final int port = testKit.system().settings().config().getInt("oti.twin.http.server.port");
+    httpServer(host, port);
   }
 
   @Test
@@ -117,7 +132,24 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(64, Duration.ofSeconds(60));
+    probe.receiveSeveralMessages(64, Duration.ofSeconds(30));
+    testKit.system().log().debug("exit createZoom15Selection");
+  }
+
+  @Test
+  public void createZoom13Selection() {
+    testKit.system().log().debug("enter createZoom15Selection");
+    TestProbe<Region.Command> probe = testKit.createTestProbe();
+
+    int zoom = 13;
+    String entityId = entityIdOf(regionForZoom0());
+    EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
+
+    // London across Westminster Bridge at Park Plaza Hotel
+    WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
+    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+
+    probe.receiveSeveralMessages(1024, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom15Selection");
   }
 
@@ -175,71 +207,6 @@ public class RegionTest {
     testKit.system().log().debug("exit createZoom08Selection");
   }
 
-  @Test
-  public void selectionCreateWithLargerContainingSelectionsOverrideSmallerSelections() {
-    List<List<WorldMap.Region>> zoomRegions = zoomRegions();
-
-    WorldMap.Region selectionZoom4 = zoomRegions.get(3).get(0);
-    WorldMap.Region selectionZoom5 = zoomRegions.get(4).get(0);
-    WorldMap.Region selectionZoom6 = zoomRegions.get(5).get(0);
-
-    Region.Selections selections = new Region.Selections(selectionZoom5);
-
-    // add 4 non-overlapping sub-selections
-    subRegionsFor(selectionZoom6).forEach(selections::create);
-
-    assertEquals(4, selections.currentSelections.size());
-
-    // add selection that contains the current 4 sub-selections
-    // causing them to be removed and replaced by the new selection
-    selections.create(selectionZoom6);
-
-    assertEquals(1, selections.currentSelections.size());
-
-    selections.create(selectionZoom4);
-
-    assertEquals(1, selections.currentSelections.size());
-  }
-
-  @Test
-  public void selectionDeleteWithSmallerDeleteRegionThanCurrentSelections() {
-    List<List<WorldMap.Region>> zoomRegions = zoomRegions();
-
-    WorldMap.Region selectionZoom15 = zoomRegions.get(14).get(0);
-    Region.Selections selections = new Region.Selections(selectionZoom15);
-
-    zoomRegions.get(15).forEach(selections::create);
-    assertEquals(4, selections.currentSelections.size());
-
-    WorldMap.Region selectionZoom17 = zoomRegions.get(16).get(0);
-    selections.delete(selectionZoom17);
-    assertEquals(4, selections.currentSelections.size());
-  }
-
-  @Test
-  public void selectionDeleteWithLargerDeleteRegionThanCurrentSelections() {
-    List<List<WorldMap.Region>> zoomRegions = zoomRegions();
-
-    WorldMap.Region selectionZoom15 = zoomRegions.get(14).get(0);
-    Region.Selections selections = new Region.Selections(selectionZoom15);
-
-    zoomRegions.get(15).forEach(selections::create);
-    assertEquals(4, selections.currentSelections.size());
-
-    WorldMap.Region selectionZoom14 = zoomRegions.get(13).get(0);
-    selections.delete(selectionZoom14);
-    assertEquals(0, selections.currentSelections.size());
-  }
-
-  private void clusterShardingInit(ClusterSharding clusterSharding) {
-    clusterSharding.init(
-        Entity.of(
-            Region.entityTypeKey,
-            entityContext -> Region.create(entityContext.getEntityId(), clusterSharding)
-        )
-    );
-  }
-
   private static WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng) {
     return regionAtLatLng(zoom, latLng, WorldMap.regionForZoom0());
   }
@@ -267,5 +234,38 @@ public class RegionTest {
       zoomRegions.add(subRegionsFor(lastRegion));
     });
     return zoomRegions;
+  }
+
+  private static CompletionStage<ServerBinding> httpServer(String host, int port) {
+    ActorSystem actorSystem = testKit.system().classicSystem();
+
+    return Http.get(actorSystem.classicSystem())
+        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer()),
+            ConnectHttp.toHost(host, port), materializer());
+  }
+
+  private static Route route() {
+    return concat(
+        path("telemetry", () -> concat(
+            get(() -> {
+              WorldMap.Region selection = regionForZoom0();
+              Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
+              return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
+            }),
+            post(() -> entity(
+                Jackson.unmarshaller(HttpClient.TelemetryRequest.class),
+                telemetryRequest -> {
+                  testKit.system().log().info("*****{}", telemetryRequest);
+                  final HttpClient.TelemetryResponse telemetryResponse = new HttpClient.TelemetryResponse("ok", StatusCodes.CREATED.intValue(), telemetryRequest);
+                  return respondWithHeader(RawHeader.create("Connection", "close"), () ->
+                      complete(StatusCodes.CREATED, telemetryResponse, Jackson.marshaller()));
+                })
+            )
+        ))
+    );
+  }
+
+  private static Materializer materializer() {
+    return Materializer.matFromSystem(testKit.system().classicSystem());
   }
 }

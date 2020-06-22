@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.State> {
@@ -56,7 +55,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   @Override
   public EventHandler<State, Event> eventHandler() {
     return newEventHandlerBuilder().forAnyState()
-        .onEvent(SelectionAccepted.class, State::addSelection)
+        .onEvent(SelectionAccepted.class, State::selectionAccepted)
         .build();
   }
 
@@ -98,7 +97,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   private Effect<Event, State> onSelectionHappyOrSad(State state, SelectionCommand selectionHappyOrSad) {
     if (state.isPartiallySelected() || state.isFullySelected()) {
       if (state.region.isDevice()) {
-        notifyTwin(state, selectionHappyOrSad);
+        notifyTwin(selectionHappyOrSad.with(state.region));
       } else {
         forwardSelectionToSubRegions(state, selectionHappyOrSad);
       }
@@ -112,32 +111,25 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         .thenRun(newState -> eventPersisted(newState, selectionCommand));
   }
 
-  private Effect<Event, State> onSelectionOLD(State state, SelectionCommand selectionCommand) {
-    if (state.isNewSelection(selectionCommand)) {
-      log().debug("{} accepted {}", region, selectionCommand);
-      SelectionAccepted selectionAccepted = new SelectionAccepted(selectionCommand.action, selectionCommand.region);
-      return Effect().persist(selectionAccepted)
-          .thenRun(newState -> eventPersisted(newState, selectionCommand));
-    } else {
-      return Effect().none();
-    }
-  }
-
   private void eventPersisted(State state, SelectionCommand selectionCommand) {
     if (region.isDevice() && selectionCommand.replyTo != null) {
       selectionCommand.replyTo.tell(selectionCommand); // hack for unit testing
     }
     if (state.region.isDevice()) {
-      notifyTwin(state, selectionCommand);
+      notifyTwin(selectionCommand.with(state.region));
     } else {
       forwardSelectionToSubRegions(state, selectionCommand);
     }
   }
 
-  private void notifyTwin(State state, SelectionCommand selectionCommand) {
-    if (state.region.isDevice()) {
-      httpClient.post(selectionCommand);
-    }
+  private void notifyTwin(SelectionCommand selectionCommand) {
+    httpClient.post(selectionCommand)
+        .thenAccept(t -> {
+          log().info("{}", t);
+          if (t.httpStatusCode != 201) {
+            log().warn("Telemetry request failed {}", t);
+          }
+        });
   }
 
   private void forwardSelectionToSubRegions(State state, SelectionCommand selectionCommand) {
@@ -168,13 +160,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       this.replyTo = replyTo; // used for unit testing
     }
 
-    boolean isCreate() {
-      return Action.create.equals(action);
-    }
-
-    boolean isDelete() {
-      return Action.delete.equals(action);
-    }
+    abstract SelectionCommand with(WorldMap.Region region);
 
     @Override
     public String toString() {
@@ -187,11 +173,19 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(Action.create, region, replyTo);
     }
+
+    SelectionCreate with(WorldMap.Region region) {
+      return new SelectionCreate(region, this.replyTo);
+    }
   }
 
   static final class SelectionDelete extends SelectionCommand {
     SelectionDelete(WorldMap.Region region, ActorRef<Command> replyTo) {
       super(Action.delete, region, replyTo);
+    }
+
+    SelectionDelete with(WorldMap.Region region) {
+      return new SelectionDelete(region, this.replyTo);
     }
   }
 
@@ -199,11 +193,19 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     SelectionHappy(WorldMap.Region region, ActorRef<Command> replyTo) {
       super(Action.happy, region, replyTo);
     }
+
+    SelectionHappy with(WorldMap.Region region) {
+      return new SelectionHappy(region, this.replyTo);
+    }
   }
 
   static final class SelectionSad extends SelectionCommand {
     SelectionSad(WorldMap.Region region, ActorRef<Command> replyTo) {
       super(Action.sad, region, replyTo);
+    }
+
+    SelectionSad with(WorldMap.Region region) {
+      return new SelectionSad(region, this.replyTo);
     }
   }
 
@@ -227,12 +229,16 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   static final class State implements CborSerializable {
-    enum Status {
-      notSelected, partiallySelected, fullySelected
+    final WorldMap.Region region;
+    Status status;
+
+    State(WorldMap.Region region) {
+      this.region = region;
+      status = Status.notSelected;
     }
 
-    enum StatusOLD {
-      happy, sad, neutral
+    enum Status {
+      notSelected, partiallySelected, fullySelected
     }
 
     boolean isNotSelected() {
@@ -252,11 +258,27 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
 
     boolean doesSelectionContainRegion(SelectionCommand selectionCommand) {
-      return selectionCommand.region.contains(region);
+      return doesSelectionContainRegion(selectionCommand.region);
+    }
+
+    boolean doesSelectionContainRegion(SelectionAccepted selectionAccepted) {
+      return doesSelectionContainRegion(selectionAccepted.region);
+    }
+
+    private boolean doesSelectionContainRegion(WorldMap.Region region) {
+      return region.contains(this.region);
     }
 
     boolean doesRegionContainSelection(SelectionCommand selectionCommand) {
-      return region.contains(selectionCommand.region);
+      return doesSelectionContainRegion(selectionCommand.region);
+    }
+
+    boolean doesRegionContainSelection(SelectionAccepted selectionAccepted) {
+      return doesRegionContainSelection(selectionAccepted.region);
+    }
+
+    private boolean doesRegionContainSelection(WorldMap.Region region) {
+      return this.region.contains(region);
     }
 
     boolean isPartialSelection(SelectionCommand selectionCommand) {
@@ -267,98 +289,24 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       return selectionCommand.region.contains(region);
     }
 
-    final WorldMap.Region region;
-    final Selections selections;
-    StatusOLD statusOLD;
-    Status status;
-
-    State(WorldMap.Region region) {
-      this.region = region;
-      selections = new Selections(region);
-      statusOLD = region.isDevice() ? StatusOLD.happy : StatusOLD.neutral;
-    }
-
-    void selected(SelectionCommand selectionCommand) {
-      if (selectionCommand.isCreate() || selectionCommand.isDelete()) {
-        if (doesSelectionContainRegion(selectionCommand)) {
-          status = Status.fullySelected;
-        } else if (doesRegionContainSelection(selectionCommand)) {
-          status = Status.partiallySelected;
-        }
-      }
-    }
-
-    boolean isNewSelection(SelectionCommand selectionCommand) {
-      switch (selectionCommand.action) {
-        case create:
-          return selections.isContainedWithin(selectionCommand.region) || selections.isContainerOfVisible(selectionCommand.region);
-        case delete:
-        case happy:
-        case sad:
-          return selections.isContainedWithin(selectionCommand.region) || selections.isContainerOf(selectionCommand.region);
-        default:
-          return false;
-      }
-    }
-
-    State addSelection(SelectionAccepted selectionAccepted) {
+    State selectionAccepted(SelectionAccepted selectionAccepted) {
       switch (selectionAccepted.action) {
         case create:
-          selections.create(selectionAccepted.region);
+          if (doesSelectionContainRegion(selectionAccepted)) {
+            status = Status.fullySelected;
+          } else if (doesRegionContainSelection(selectionAccepted)) {
+            status = Status.partiallySelected;
+          }
           break;
         case delete:
-          selections.delete(selectionAccepted.region);
+          if (doesSelectionContainRegion(selectionAccepted)) {
+            status = Status.notSelected;
+          } else if (doesRegionContainSelection(selectionAccepted) && isFullySelected()) {
+            status = Status.partiallySelected;
+          }
           break;
-        case happy:
-          statusOLD = region.isDevice() ? StatusOLD.happy : StatusOLD.neutral;
-          break;
-        case sad:
-          statusOLD = region.isDevice() ? StatusOLD.sad : StatusOLD.neutral;
       }
       return this;
-    }
-  }
-
-  static final class Selections implements CborSerializable {
-    final WorldMap.Region region;
-    final List<WorldMap.Region> currentSelections = new ArrayList<>();
-
-    Selections(WorldMap.Region region) {
-      this.region = region;
-    }
-
-    void create(WorldMap.Region regionCreate) {
-      if (isContainedWithin(regionCreate)) {
-        currentSelections.clear();
-        currentSelections.add(regionCreate);
-      } else if (isContainerOf(regionCreate)) {
-        currentSelections.removeIf(regionCreate::contains);
-        currentSelections.add(regionCreate);
-      }
-    }
-
-    void delete(WorldMap.Region regionDelete) {
-      if (isContainedWithin(regionDelete)) {
-        currentSelections.clear();
-      } else if (isContainerOf(regionDelete)) {
-        currentSelections.removeIf(regionDelete::contains);
-      }
-    }
-
-    boolean isContainedWithin(WorldMap.Region region) {
-      return region.contains(this.region);
-    }
-
-    boolean isContainerOf(WorldMap.Region region) {
-      return this.region.contains(region);
-    }
-
-    boolean isContainerOfVisible(WorldMap.Region region) {
-      return isContainerOf(region) && isVisible(region);
-    }
-
-    private boolean isVisible(WorldMap.Region region) {
-      return currentSelections.stream().noneMatch(currentRegion -> currentRegion.contains(region));
     }
   }
 

@@ -3,7 +3,11 @@ package oti.simulator;
 import akka.actor.typed.ActorSystem;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.*;
+import akka.http.javadsl.model.ContentTypes;
+import akka.http.javadsl.model.HttpEntities;
+import akka.http.javadsl.model.HttpEntity;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.headers.RawHeader;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +15,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -36,6 +42,7 @@ class HttpClient {
   private CompletionStage<TelemetryResponse> post(TelemetryRequest telemetryRequest) {
     return Http.get(actorSystem.classicSystem())
         .singleRequest(HttpRequest.POST(url)
+            .withHeaders(Collections.singletonList(RawHeader.create("Connection", "close")))
             .withEntity(toHttpEntity(telemetryRequest)))
         .thenCompose(r -> {
           if (r.status().isSuccess()) {
@@ -47,8 +54,8 @@ class HttpClient {
   }
 
   private static String url(ActorSystem<?> actorSystem) {
-    final String host = actorSystem.settings().config().getString("oti_twin_http_server_host");
-    final int port = actorSystem.settings().config().getInt("oti_twin_http_server_port");
+    final String host = actorSystem.settings().config().getString("oti.twin.http.server.host");
+    final int port = actorSystem.settings().config().getInt("oti.twin.http.server.port");
     return String.format("http://%s:%d/telemetry", host, port);
   }
 
@@ -79,6 +86,11 @@ class HttpClient {
       this.botRightLat = botRightLat;
       this.botRightLng = botRightLng;
     }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+    }
   }
 
   public static class TelemetryResponse {
@@ -94,6 +106,11 @@ class HttpClient {
       this.message = message;
       this.httpStatusCode = httpStatusCode;
       this.telemetryRequest = telemetryRequest;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, telemetryRequest);
     }
   }
 
