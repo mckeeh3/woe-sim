@@ -136,6 +136,7 @@ public class RegionTest {
     testKit.system().log().debug("exit createZoom15Selection");
   }
 
+  @Ignore
   @Test
   public void createZoom13Selection() {
     testKit.system().log().debug("enter createZoom15Selection");

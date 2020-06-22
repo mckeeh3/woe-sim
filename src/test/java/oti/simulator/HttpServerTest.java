@@ -20,14 +20,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static oti.simulator.WorldMap.regionForZoom0;
 
 public class HttpServerTest {
   private static HttpServer httpServer;
+  private static String selectionUrl;
 
   @ClassRule
   public static final TestKitJunitResource testKit = new TestKitJunitResource(config());
@@ -52,9 +53,10 @@ public class HttpServerTest {
     );
     testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
 
-    String host = testKit.system().settings().config().getString("oti.http.host");
-    int port = testKit.system().settings().config().getInt("oti.http.port");
+    String host = testKit.system().settings().config().getString("oti.simulator.http.server.host");
+    int port = testKit.system().settings().config().getInt("oti.simulator.http.server.port");
     httpServer = HttpServer.start(host, port, testKit.system());
+    selectionUrl = String.format("http://%s:%d/selection", host, port);
   }
 
   @Test
@@ -68,7 +70,7 @@ public class HttpServerTest {
     httpServer.replyTo(probe.ref()); // hack to pass probe ref to entity messages
 
     HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
-        .singleRequest(HttpRequest.POST("http://localhost:28080/selection")
+        .singleRequest(HttpRequest.POST(selectionUrl)
             .withEntity(toHttpEntity(selectionActionRequest)))
         .toCompletableFuture().join();
 
@@ -78,33 +80,6 @@ public class HttpServerTest {
     String response = entityAsString(httpResponse, materializer());
     assertNotNull(response);
     assertTrue(response.contains("\"message\":\"Accepted\""));
-  }
-
-  @Test
-  public void readHtmlFile() {
-    HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
-        .singleRequest(HttpRequest.GET("http://localhost:28080/oti.html"))
-        .toCompletableFuture().join();
-
-    assertTrue(httpResponse.status().isSuccess());
-    String entity = entityAsString(httpResponse, materializer());
-    assertNotNull(entity);
-    assertTrue(entity.startsWith("For unit testing"));
-  }
-
-  @Test
-  public void readJsFiles() {
-    Arrays.stream(new String[]{"oti.js", "p5.js", "mappa.js"}).forEach(filename -> {
-      HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
-          .singleRequest(HttpRequest.GET(String.format("http://localhost:28080/%s", filename)))
-          .toCompletableFuture().join();
-
-      assertTrue(httpResponse.status().isSuccess());
-      assertEquals(ContentTypes.APPLICATION_JSON, httpResponse.entity().getContentType());
-      String entity = entityAsString(httpResponse, materializer());
-      assertNotNull(entity);
-      assertTrue(entity.startsWith("For unit testing"));
-    });
   }
 
   @Ignore
