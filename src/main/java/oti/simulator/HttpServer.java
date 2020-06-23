@@ -56,9 +56,11 @@ class HttpServer {
             Jackson.unmarshaller(SelectionActionRequest.class),
             selectionActionRequest -> {
               try {
+                log().debug("POST {}", selectionActionRequest);
                 submit(selectionActionRequest);
                 return complete(StatusCodes.OK, SelectionActionResponse.ok(StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller());
               } catch (IllegalArgumentException e) {
+                log().warn("POST failed {}", selectionActionRequest);
                 return complete(StatusCodes.BAD_REQUEST, SelectionActionResponse.failed(e.getMessage(), StatusCodes.BAD_REQUEST.intValue(), selectionActionRequest), Jackson.marshaller());
               }
             }
@@ -116,6 +118,11 @@ class HttpServer {
           throw new IllegalArgumentException(String.format("Action '%s' illegal, must be one of: 'create', 'delete', 'happy', or 'sad'.", action));
       }
     }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+    }
   }
 
   public static class SelectionActionResponse {
@@ -139,6 +146,11 @@ class HttpServer {
 
     static SelectionActionResponse failed(String message, int httpStatusCode, SelectionActionRequest selectionActionRequest) {
       return new SelectionActionResponse(message, httpStatusCode, selectionActionRequest);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, selectionActionRequest);
     }
   }
 

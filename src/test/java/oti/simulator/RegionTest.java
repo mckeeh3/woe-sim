@@ -15,6 +15,8 @@ import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
@@ -22,6 +24,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static akka.http.javadsl.server.Directives.*;
 import static oti.simulator.WorldMap.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RegionTest {
   private static ClusterSharding clusterSharding;
@@ -206,6 +210,32 @@ public class RegionTest {
 
     probe.receiveSeveralMessages(1048576, Duration.ofMinutes(10));
     testKit.system().log().debug("exit createZoom08Selection");
+  }
+
+  @Test
+  public void serializeDeserializeSelectionCommands() throws IOException {
+    CBORFactory cborFactory = new CBORFactory();
+    ObjectMapper objectMapper = new ObjectMapper(cborFactory);
+
+    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(regionForZoom0(), null);
+    final byte[] bytesSelectionCreate = objectMapper.writeValueAsBytes(selectionCreate);
+    final Region.SelectionCreate selectionCreate1 = objectMapper.readValue(bytesSelectionCreate, Region.SelectionCreate.class);
+    assertEquals(selectionCreate, selectionCreate1);
+
+    final Region.SelectionDelete selectionDelete = new Region.SelectionDelete(regionForZoom0(), null);
+    final byte[] bytesSelectionDelete = objectMapper.writeValueAsBytes(selectionDelete);
+    final Region.SelectionDelete selectionDelete1 = objectMapper.readValue(bytesSelectionDelete, Region.SelectionDelete.class);
+    assertEquals(selectionDelete, selectionDelete1);
+
+    final Region.SelectionHappy selectionHappy = new Region.SelectionHappy(regionForZoom0(), null);
+    final byte[] bytesSelectionHappy = objectMapper.writeValueAsBytes(selectionHappy);
+    final Region.SelectionHappy selectionHappy1 = objectMapper.readValue(bytesSelectionHappy, Region.SelectionHappy.class);
+    assertEquals(selectionHappy, selectionHappy1);
+
+    final Region.SelectionSad selectionSad = new Region.SelectionSad(regionForZoom0(), null);
+    final byte[] bytesSelectionSad = objectMapper.writeValueAsBytes(selectionSad);
+    final Region.SelectionSad selectionSad1 = objectMapper.readValue(bytesSelectionSad, Region.SelectionSad.class);
+    assertEquals(selectionSad, selectionSad1);
   }
 
   private static WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng) {

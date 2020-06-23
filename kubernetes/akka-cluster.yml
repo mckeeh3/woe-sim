@@ -63,11 +63,11 @@ spec:
             - name: cassandra_host_port_1
               value: "yb-tservers.yb-demo.svc.cluster.local:9042"
             - name: oti_simulator_http_server_host
-              value: "oti-sim.oti-sim-1.svc.cluster.local"
+              value: "oti-sim-service.oti-sim-1.svc.cluster.local"
             - name: oti_simulator_http_server_port
               value: "8080"
             - name: oti_twin_http_server_host
-              value: "oti-twin.oti-twin-1.svc.cluster.local"
+              value: "oti-twin-service.oti-twin-1.svc.cluster.local"
             - name: oti_twin_http_server_port
               value: "8080"
 

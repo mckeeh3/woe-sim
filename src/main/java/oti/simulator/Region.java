@@ -10,11 +10,11 @@ import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.SnapshotSelectionCriteria;
 import akka.persistence.typed.javadsl.*;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Objects;
 
 class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.State> {
   final String entityId;
@@ -125,8 +125,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   private void notifyTwin(SelectionCommand selectionCommand) {
     httpClient.post(selectionCommand)
         .thenAccept(t -> {
-          log().info("{}", t);
-          if (t.httpStatusCode != 201) {
+          log().debug("{}", t);
+          if (t.httpStatusCode != 200) {
             log().warn("Telemetry request failed {}", t);
           }
         });
@@ -152,9 +152,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     public final WorldMap.Region region;
     public final ActorRef<Command> replyTo;
 
-    @JsonCreator
-    public SelectionCommand(@JsonProperty("action") Action action, @JsonProperty("region") WorldMap.Region region,
-                            @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+    public SelectionCommand(Action action, WorldMap.Region region, ActorRef<Command> replyTo) {
       this.action = action;
       this.region = region;
       this.replyTo = replyTo; // used for unit testing
@@ -163,13 +161,27 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     abstract SelectionCommand with(WorldMap.Region region);
 
     @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      SelectionCommand that = (SelectionCommand) o;
+      return action == that.action &&
+          region.equals(that.region) &&
+          Objects.equals(replyTo, that.replyTo);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(action, region, replyTo);
+    }
+
+    @Override
     public String toString() {
       return String.format("%s[%s, %s]", getClass().getSimpleName(), action, region);
     }
   }
 
   public static final class SelectionCreate extends SelectionCommand {
-    @JsonCreator
     public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(Action.create, region, replyTo);
     }
@@ -179,8 +191,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  static final class SelectionDelete extends SelectionCommand {
-    SelectionDelete(WorldMap.Region region, ActorRef<Command> replyTo) {
+  public static final class SelectionDelete extends SelectionCommand {
+    public SelectionDelete(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(Action.delete, region, replyTo);
     }
 
@@ -189,8 +201,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  static final class SelectionHappy extends SelectionCommand {
-    SelectionHappy(WorldMap.Region region, ActorRef<Command> replyTo) {
+  public static final class SelectionHappy extends SelectionCommand {
+    public SelectionHappy(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(Action.happy, region, replyTo);
     }
 
@@ -199,8 +211,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  static final class SelectionSad extends SelectionCommand {
-    SelectionSad(WorldMap.Region region, ActorRef<Command> replyTo) {
+  public static final class SelectionSad extends SelectionCommand {
+    public SelectionSad(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
       super(Action.sad, region, replyTo);
     }
 
@@ -216,8 +228,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     public final SelectionCommand.Action action;
     public final WorldMap.Region region;
 
-    @JsonCreator
-    SelectionAccepted(@JsonProperty("action") SelectionCommand.Action action, @JsonProperty("region") WorldMap.Region region) {
+    SelectionAccepted(SelectionCommand.Action action, WorldMap.Region region) {
       this.action = action;
       this.region = region;
     }
