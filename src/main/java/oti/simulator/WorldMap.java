@@ -123,7 +123,7 @@ interface WorldMap {
 
     @Override
     public String toString() {
-      return String.format("%s[lat %f, lng %f]", getClass().getSimpleName(), lat, lng);
+      return String.format("%s[lat %1.13f, lng %1.13f]", getClass().getSimpleName(), lat, lng);
     }
   }
 

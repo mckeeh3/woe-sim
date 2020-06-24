@@ -290,6 +290,34 @@ public class WorldMapTest {
   }
 
   @Test
+  public void adjoiningRegionsDoNotOverLap() {
+    final WorldMap.Region region11 = regionAtLatLng(18, topLeft(51.50112939, -0.11687458));
+    final WorldMap.Region region12 = regionAtLatLng(18, topLeft(51.50114608, -0.11625767));
+    final WorldMap.Region region21 = regionAtLatLng(18, topLeft(51.50059175, -0.11680484));
+    final WorldMap.Region region22 = regionAtLatLng(18, topLeft(51.50056837, -0.11625767));
+
+    assertFalse(region11.overlaps(region12));
+    assertFalse(region11.overlaps(region21));
+    assertFalse(region11.overlaps(region22));
+    assertTrue(region11.overlaps(region11));
+
+    assertFalse(region12.overlaps(region11));
+    assertFalse(region12.overlaps(region21));
+    assertFalse(region12.overlaps(region22));
+    assertTrue(region12.overlaps(region12));
+
+    assertFalse(region21.overlaps(region11));
+    assertFalse(region21.overlaps(region12));
+    assertFalse(region21.overlaps(region22));
+    assertTrue(region21.overlaps(region21));
+
+    assertFalse(region22.overlaps(region11));
+    assertFalse(region22.overlaps(region12));
+    assertFalse(region22.overlaps(region21));
+    assertTrue(region22.overlaps(region22));
+  }
+
+  @Test
   public void subRegionsForZoom0() {
     List<WorldMap.Region> regions = subRegionsFor(regionForZoom0());
 

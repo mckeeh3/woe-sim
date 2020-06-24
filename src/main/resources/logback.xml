@@ -11,6 +11,16 @@
         <appender-ref ref="STDOUT" />
     </appender>
 
+    <logger name="akka.cluster.sharding" level="INFO"/>
+    <logger name="akka.cluster.ddata" level="INFO"/>
+    <logger name="com.datastax.oss" level="INFO"/>
+    <logger name="akka.actor.TimerScheduler" level="INFO"/>
+    <logger name="akka.persistence.cassandra" level="INFO"/>
+    <logger name="io.netty.util.internal" level="INFO"/>
+    <logger name="akka.remote.artery" level="INFO"/>
+    <logger name="akka.io" level="INFO"/>
+    <logger name="akka.http" level="INFO"/>
+
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>
     </root>
