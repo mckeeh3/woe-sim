@@ -2,6 +2,7 @@ package oti.simulator;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.DispatcherSelector;
 import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
@@ -32,7 +33,7 @@ public class Main {
             Region.entityTypeKey,
             entityContext ->
                 Region.create(entityContext.getEntityId(), clusterSharding)
-        )
+        ).withEntityProps(DispatcherSelector.fromConfig("oti.twin.region-entity-dispatcher"))
     );
   }
 

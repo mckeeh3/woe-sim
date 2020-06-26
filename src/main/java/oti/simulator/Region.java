@@ -95,11 +95,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionHappyOrSad(State state, SelectionCommand selectionHappyOrSad) {
-    if (state.isPartiallySelected() || state.isFullySelected()) {
-      if (state.region.isDevice()) {
-        notifyTwin(selectionHappyOrSad.with(state.region));
-      } else {
-        forwardSelectionToSubRegions(state, selectionHappyOrSad);
+    if (state.doesSelectionOverlapRegion(selectionHappyOrSad)) {
+      if (state.isPartiallySelected() || state.isFullySelected()) {
+        if (state.region.isDevice()) {
+          notifyTwin(selectionHappyOrSad.with(state.region));
+        } else {
+          forwardSelectionToSubRegions(state, selectionHappyOrSad);
+        }
       }
     }
     return Effect().none();
