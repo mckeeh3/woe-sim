@@ -12,6 +12,7 @@ import akka.management.javadsl.AkkaManagement;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
 
 public class Main {
   public static Behavior<Void> create() {
@@ -24,17 +25,10 @@ public class Main {
 
   public static void main(String[] args) {
     ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "oti-sim");
-    ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
-
-    clusterSharding.init(
-        Entity.of(
-            Region.entityTypeKey,
-            entityContext ->
-                Region.create(entityContext.getEntityId(), clusterSharding)
-        ).withEntityProps(DispatcherSelector.fromConfig("oti.twin.region-entity-dispatcher"))
-    );
+    startRegionClusterSharding(actorSystem);
+    startRegionPinger(actorSystem);
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
@@ -50,6 +44,22 @@ public class Main {
     } catch (UnknownHostException e) {
       actorSystem.log().error("Http server start failure.", e);
     }
+  }
+
+  private static void startRegionClusterSharding(ActorSystem<?> actorSystem) {
+    ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
+    clusterSharding.init(
+        Entity.of(
+            Region.entityTypeKey,
+            entityContext ->
+                Region.create(entityContext.getEntityId(), clusterSharding)
+        ).withEntityProps(DispatcherSelector.fromConfig("oti.twin.region-entity-dispatcher"))
+    );
+  }
+
+  private static void startRegionPinger(ActorSystem<?> actorSystem) {
+    final Duration interval = Duration.parse(actorSystem.settings().config().getString("oti.twin.region-ping-interval-iso-8601"));
+    RegionPinger.start(actorSystem, interval);
   }
 }
 

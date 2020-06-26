@@ -49,6 +49,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         .onCommand(SelectionDelete.class, this::onSelectionDelete)
         .onCommand(SelectionHappy.class, this::onSelectionHappyOrSad)
         .onCommand(SelectionSad.class, this::onSelectionHappyOrSad)
+        .onCommand(PingPartiallySelected.class, this::pingPartiallySelected)
+        .onCommand(PingFullySelected.class, this::pingFullySelected)
         .build();
   }
 
@@ -65,13 +67,17 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionCreate(State state, SelectionCreate selectionCreate) {
-    if (state.doesSelectionOverlapRegion(selectionCreate)) {
+    if (state.doesCommandRegionOverlapStateRegion(selectionCreate)) {
       if (state.isPartialSelection(selectionCreate) && state.isNotSelected()) {
         return acceptSelection(selectionCreate);
       } else if (state.isFullSelection(selectionCreate) && (state.isNotSelected() || state.isPartiallySelected())) {
         return acceptSelection(selectionCreate);
       } else {
-        forwardSelectionToSubRegions(state, selectionCreate);
+        if (state.region.isDevice()) {
+          notifyTwin(selectionCreate);
+        } else {
+          forwardSelectionToSubRegions(state, selectionCreate);
+        }
         return Effect().none();
       }
     } else {
@@ -80,13 +86,17 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionDelete(State state, SelectionDelete selectionDelete) {
-    if (state.doesSelectionOverlapRegion(selectionDelete)) {
+    if (state.doesCommandRegionOverlapStateRegion(selectionDelete)) {
       if (state.isFullySelected()) {
         return acceptSelection(selectionDelete);
       } else if (state.isFullSelection(selectionDelete) & state.isPartiallySelected()) {
         return acceptSelection(selectionDelete);
       } else {
-        forwardSelectionToSubRegions(state, selectionDelete);
+        if (state.region.isDevice()) {
+          notifyTwin(selectionDelete);
+        } else {
+          forwardSelectionToSubRegions(state, selectionDelete);
+        }
         return Effect().none();
       }
     } else {
@@ -95,13 +105,43 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionHappyOrSad(State state, SelectionCommand selectionHappyOrSad) {
-    if (state.doesSelectionOverlapRegion(selectionHappyOrSad)) {
+    if (state.doesCommandRegionOverlapStateRegion(selectionHappyOrSad)) {
       if (state.isPartiallySelected() || state.isFullySelected()) {
         if (state.region.isDevice()) {
           notifyTwin(selectionHappyOrSad.with(state.region));
         } else {
           forwardSelectionToSubRegions(state, selectionHappyOrSad);
         }
+      }
+    }
+    return Effect().none();
+  }
+
+  private Effect<Event, State> pingPartiallySelected(State state, PingPartiallySelected pingPartiallySelected) {
+    if (state.doesCommandRegionOverlapStateRegion(pingPartiallySelected)) {
+      if (state.isFullySelected()) {
+        if (state.region.isDevice()) {
+          notifyTwin(pingPartiallySelected);
+        } else {
+          forwardSelectionToSubRegions(state, new PingFullySelected(state.region, pingPartiallySelected.replyTo));
+        }
+      } else if (state.isPartiallySelected()) {
+        forwardSelectionToSubRegions(state, pingPartiallySelected);
+      }
+    }
+    return Effect().none();
+  }
+
+  private Effect<Event, State> pingFullySelected(State state, PingFullySelected pingFullySelected) {
+    if (state.doesCommandRegionOverlapStateRegion(pingFullySelected)) {
+      if (state.isFullySelected()) {
+        if (state.region.isDevice()) {
+          notifyTwin(pingFullySelected);
+        } else {
+          forwardSelectionToSubRegions(state, pingFullySelected);
+        }
+      } else { // this region should be fully selected, so fix it. this is a form of self healing.
+        return acceptSelection(new SelectionCreate(state.region, pingFullySelected.replyTo));
       }
     }
     return Effect().none();
@@ -127,7 +167,6 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   private void notifyTwin(SelectionCommand selectionCommand) {
     httpClient.post(selectionCommand)
         .thenAccept(t -> {
-          log().debug("{}", t);
           if (t.httpStatusCode != 200) {
             log().warn("Telemetry request failed {}", t);
           }
@@ -147,7 +186,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   public abstract static class SelectionCommand implements Command {
     enum Action {
-      create, delete, happy, sad
+      create, delete, happy, sad, ping
     }
 
     public final Action action;
@@ -223,6 +262,28 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
+  public static final class PingPartiallySelected extends SelectionCommand {
+    public PingPartiallySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+      super(Action.ping, region, replyTo);
+    }
+
+    @Override
+    PingPartiallySelected with(WorldMap.Region region) {
+      return new PingPartiallySelected(region, replyTo);
+    }
+  }
+
+  public static final class PingFullySelected extends SelectionCommand {
+    public PingFullySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+      super(Action.ping, region, replyTo);
+    }
+
+    @Override
+    PingFullySelected with(WorldMap.Region region) {
+      return new PingFullySelected(region, replyTo);
+    }
+  }
+
   interface Event extends CborSerializable {
   }
 
@@ -266,12 +327,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       return Status.fullySelected.equals(status);
     }
 
-    boolean doesSelectionOverlapRegion(SelectionCommand selectionCommand) {
+    boolean doesCommandRegionOverlapStateRegion(SelectionCommand selectionCommand) {
       return region.overlaps(selectionCommand.region);
-    }
-
-    boolean doesSelectionContainRegion(SelectionCommand selectionCommand) {
-      return doesSelectionContainRegion(selectionCommand.region);
     }
 
     boolean doesSelectionContainRegion(SelectionAccepted selectionAccepted) {
@@ -280,10 +337,6 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
     private boolean doesSelectionContainRegion(WorldMap.Region region) {
       return region.contains(this.region);
-    }
-
-    boolean doesRegionContainSelection(SelectionCommand selectionCommand) {
-      return doesSelectionContainRegion(selectionCommand.region);
     }
 
     boolean doesRegionContainSelection(SelectionAccepted selectionAccepted) {
