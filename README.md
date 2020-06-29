@@ -170,6 +170,74 @@ oti-sim-bd5bf8ddc-tjtpk   1/1     Running   0          8m28s
 oti-sim-bd5bf8ddc-z8gh5   1/1     Running   0          8m28s
 ~~~
 
+### Build and Deploy to Google Cloud Container Registry
+
+First, create a GKE (Google Kubernetes Engine) project. From the
+[Google Cloud Platform](https://console.cloud.google.com) Dashboard, click The
+triple bar icon at the top left and click Kubernetes Engine/Clusters. Follow the
+documentation TODO for creating a cluster and a project.
+
+Use the [Quickstart for Container Registry](https://cloud.google.com/container-registry/docs/quickstart)
+to create a Docker image container registry.
+
+Deploy [Yugabyte](https://download.yugabyte.com/#kubernetes) to the GKE cluster.
+
+Build the project, which will create a new Docker image.
+~~~bash
+$ mvn clean package docker:build
+~~~
+~~~
+...
+
+[INFO]
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-sim ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-sim/target/docker/oti-sim/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-sim/target/docker/oti-sim/tmp/docker-build.tar
+[INFO] DOCKER> [oti-sim:latest]: Created docker-build.tar in 405 milliseconds
+[INFO] DOCKER> [oti-sim:latest]: Built image sha256:ebe14
+[INFO] DOCKER> [oti-sim:latest]: Tag with latest,20200617-143425.6247cf9
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:30 min
+[INFO] Finished at: 2020-06-19T09:25:15-04:00
+[INFO] ------------------------------------------------------------------------
+~~~
+
+Configure authentication to the Container Registry.
+See [Authentication methods](https://cloud.google.com/container-registry/docs/advanced-authentication).
+Here the [gcloud as a Docker credential helper](https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud-helper)
+method is used.
+~~~bash
+$ gcloud auth login
+~~~
+
+Configure Docker with the following command:
+~~~bash
+$ gcloud auth configure-docker
+~~~
+
+Tag the Docker image.
+~~~bash
+$ docker tag oti-sim gcr.io/$(gcloud config get-value project)/oti-sim:$(date +"%Y%m%d-%H%M%S")
+~~~
+
+Push the Docker image to the ContainerRegistry.
+~~~bash
+$ docker push gcr.io/$(gcloud config get-value project)/oti-sim
+~~~
+
+To view the uploaded container search for "container registry" from the Google Cloud Console.
+You can also list the uploaded containers via the CLI.
+~~~bash
+$ gcloud container images list                    
+~~~
+~~~
+NAME
+gcr.io/akka-yuga/oti-sim
+Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
+~~~
+
 ### Enable External Access
 
 Create a load balancer to enable access to the OTI Sim microservice HTTP endpoint.
