@@ -19,7 +19,7 @@ spec:
       containers:
         - name: oti-sim
           image: grc.io/akka-yuga/oti-sim:latest
-          imagePullPolicy: IfPresent
+          imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
               path: /ready
