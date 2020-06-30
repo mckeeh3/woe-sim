@@ -55,7 +55,7 @@ Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers 
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
-ycqlsh> source '/tmp/akka-persistence-journal.cql'
+ycqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
 ycqlsh> describe keyspaces;
 
 oti_simulator  system_schema  system_auth  system
