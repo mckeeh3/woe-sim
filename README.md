@@ -35,18 +35,6 @@ Use HELP for help.
 ycqlsh> quit
 ~~~
 
-PostgreSQL
-~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
-
-Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
-ysqlsh (11.2-YB-2.1.8.1-b0)
-Type "help" for help.
-
-yugabyte=# \q
-~~~
-
 ##### Copy CQL DDL commands to the Yugabyte server
 
 From the oti-sim project directory.
@@ -220,11 +208,12 @@ $ gcloud auth configure-docker
 Tag the Docker image.
 ~~~bash
 $ docker tag oti-sim gcr.io/$(gcloud config get-value project)/oti-sim:$(date +"%Y%m%d-%H%M%S")
+$ docker tag oti-sim gcr.io/$(gcloud config get-value project)/oti-sim:latest
 ~~~
 
 Push the Docker image to the ContainerRegistry.
 ~~~bash
-$ docker push gcr.io/$(gcloud config get-value project)/oti-sim
+$ docker push gcr.io/$(gcloud config get-value project)/oti-sim:latest
 ~~~
 
 To view the uploaded container search for "container registry" from the Google Cloud Console.
@@ -236,6 +225,32 @@ $ gcloud container images list
 NAME
 gcr.io/akka-yuga/oti-sim
 Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
+~~~
+
+Create the Kubernetes namespace. The namespace only needs to be created once.
+~~~bash
+$ kubectl apply -f kubernetes/namespace.json     
+~~~
+~~~
+namespace/oti-sim-1 created
+~~~
+
+Set this namespace as the default for subsequent `kubectl` commands.
+~~~bash
+$ kubectl config set-context --current --namespace=oti-sim-1
+~~~
+~~~
+Context "minikube" modified.
+~~~
+
+Deploy the Docker images to the Kubernetes cluster.
+~~~bash
+$ kubectl apply -f kubernetes/akka-cluster.yml
+~~~
+~~~
+deployment.apps/oti-sim created
+role.rbac.authorization.k8s.io/pod-reader created
+rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
 
 ### Enable External Access
