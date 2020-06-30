@@ -40,7 +40,7 @@ ycqlsh> quit
 From the oti-sim project directory.
 
 ~~~bash
-$ kubectl cp src/main/resources/akka-persistence-journal.cql yb-demo/yb-tserver-0:/tmp                                                                  
+$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yb-demo/yb-tserver-0:/tmp                                                                  
 Defaulting container name to yb-tserver.
 ~~~
 
