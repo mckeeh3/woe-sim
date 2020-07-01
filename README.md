@@ -207,7 +207,6 @@ $ gcloud auth configure-docker
 
 Tag the Docker image.
 ~~~bash
-$ docker tag oti-sim gcr.io/$(gcloud config get-value project)/oti-sim:$(date +"%Y%m%d-%H%M%S")
 $ docker tag oti-sim gcr.io/$(gcloud config get-value project)/oti-sim:latest
 ~~~
 
@@ -245,12 +244,34 @@ Context "minikube" modified.
 
 Deploy the Docker images to the Kubernetes cluster.
 ~~~bash
-$ kubectl apply -f kubernetes/akka-cluster.yml
+$ kubectl apply -f kubernetes/akka-cluster-gke.yml
 ~~~
 ~~~
 deployment.apps/oti-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
+~~~
+
+View the status of the running pods.
+~~~bash
+$ kubectl get pods   
+~~~
+~~~
+NAME                       READY   STATUS    RESTARTS   AGE
+oti-sim-5d4949bf95-7z8mw   1/1     Running   0          21h
+oti-sim-5d4949bf95-b2hv9   1/1     Running   0          21h
+oti-sim-5d4949bf95-ggqsm   1/1     Running   0          21h
+~~~
+
+Open a shell on one of the pods.
+~~~bash
+$ kubectl exec -it oti-sim-5d4949bf95-7z8mw -- /bin/bash                        
+~~~
+~~~
+root@oti-sim-5d4949bf95-7z8mw:/# ll maven/oti-sim-1.0-SNAPSHOT.jar
+-rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/oti-sim-1.0-SNAPSHOT.jar
+root@oti-sim-5d4949bf95-7z8mw:/# exit
+exit
 ~~~
 
 ### Enable External Access
