@@ -19,7 +19,7 @@ spec:
       containers:
         - name: oti-sim
           image: gcr.io/akka-yuga/oti-sim
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           readinessProbe:
             httpGet:
               path: /ready
