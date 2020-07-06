@@ -74,7 +74,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         return acceptSelection(selectionCreate);
       } else {
         if (state.region.isDevice()) {
-          notifyTwin(selectionCreate);
+          notifyTwin(state, selectionCreate);
         } else {
           forwardSelectionToSubRegions(state, selectionCreate);
         }
@@ -93,7 +93,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         return acceptSelection(selectionDelete);
       } else {
         if (state.region.isDevice()) {
-          notifyTwin(selectionDelete);
+          notifyTwin(state, selectionDelete);
         } else {
           forwardSelectionToSubRegions(state, selectionDelete);
         }
@@ -108,7 +108,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (state.doesCommandRegionOverlapStateRegion(selectionHappyOrSad)) {
       if (state.isPartiallySelected() || state.isFullySelected()) {
         if (state.region.isDevice()) {
-          notifyTwin(selectionHappyOrSad.with(state.region));
+          notifyTwin(state, selectionHappyOrSad);
         } else {
           forwardSelectionToSubRegions(state, selectionHappyOrSad);
         }
@@ -121,7 +121,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (state.doesCommandRegionOverlapStateRegion(pingPartiallySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
-          notifyTwin(pingPartiallySelected.with(state.region));
+          notifyTwin(state, pingPartiallySelected);
         } else {
           forwardSelectionToSubRegions(state, new PingFullySelected(state.region, pingPartiallySelected.replyTo));
         }
@@ -136,7 +136,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (state.doesCommandRegionOverlapStateRegion(pingFullySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
-          notifyTwin(pingFullySelected.with(state.region));
+          notifyTwin(state, pingFullySelected);
         } else {
           forwardSelectionToSubRegions(state, pingFullySelected);
         }
@@ -158,14 +158,14 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       selectionCommand.replyTo.tell(selectionCommand); // hack for unit testing
     }
     if (state.region.isDevice()) {
-      notifyTwin(selectionCommand.with(state.region));
+      notifyTwin(state, selectionCommand);
     } else {
       forwardSelectionToSubRegions(state, selectionCommand);
     }
   }
 
-  private void notifyTwin(SelectionCommand selectionCommand) {
-    httpClient.post(selectionCommand)
+  private void notifyTwin(State state, SelectionCommand selectionCommand) {
+    httpClient.post(selectionCommand.with(state.region))
         .thenAccept(t -> {
           if (t.httpStatusCode != 200) {
             log().warn("Telemetry request failed {}", t);
