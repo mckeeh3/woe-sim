@@ -12,7 +12,7 @@
         <git.commit.version>${git.commit.time}.${git.commit.id.abbrev}</git.commit.version>
         <java.version>11</java.version>
         <scala.version>2.13</scala.version>
-        <akka.version>2.6.6</akka.version>
+        <akka.version>2.6.8</akka.version>
         <akka.http.version>10.1.12</akka.http.version>
         <akka.management.version>1.0.8</akka.management.version>
         <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
@@ -80,6 +80,23 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-discovery_${scala.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+
+        <!-- Dynamic Log Levels -->
+        <dependency>
+            <groupId>com.lightbend.akka.management</groupId>
+            <artifactId>akka-management-loglevels-logback_${scala.version}</artifactId>
+            <version>${akka.management.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lightbend.akka.management</groupId>
+            <artifactId>akka-management_${scala.version}</artifactId>
+            <version>${akka.management.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j_${scala.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
 
