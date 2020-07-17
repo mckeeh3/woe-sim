@@ -16,6 +16,7 @@
         <akka.http.version>10.1.12</akka.http.version>
         <akka.management.version>1.0.8</akka.management.version>
         <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
+        <yugabyte.driver.version>3.8.0-yb-5</yugabyte.driver.version>
         <jackson.version>2.10.3</jackson.version>
         <logback.version>1.2.3</logback.version>
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
@@ -59,6 +60,11 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-persistence-query_${scala.version}</artifactId>
             <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yugabyte</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>${yugabyte.driver.version}</version>
         </dependency>
 
         <!-- Akka Cluster Bootstrap -->
