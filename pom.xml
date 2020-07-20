@@ -61,11 +61,11 @@
             <artifactId>akka-persistence-query_${scala.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>com.yugabyte</groupId>
             <artifactId>cassandra-driver-core</artifactId>
             <version>${yugabyte.driver.version}</version>
-        </dependency>
+        </dependency-->
 
         <!-- Akka Cluster Bootstrap -->
         <dependency>
