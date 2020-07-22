@@ -60,7 +60,7 @@ spec:
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
             - name: cassandra_host_port_1
-              value: "yb-tservers.yugabyte-db-1.svc.cluster.local:9042"
+              value: "yb-tservers.yugabyte.svc.cluster.local:9042"
             - name: oti_simulator_http_server_host
               value: "oti-sim-service.oti-sim-1.svc.cluster.local"
             - name: oti_simulator_http_server_port
