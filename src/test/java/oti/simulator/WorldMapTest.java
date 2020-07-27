@@ -3,6 +3,7 @@ package oti.simulator;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -419,6 +420,23 @@ public class WorldMapTest {
         assertTrue(zoomRegions.get(zoom - 1).get(0).contains(zoomRegions.get(zoom).get(srIdx)));
       });
     });
+  }
+
+  @Test
+  public void devicesWithRegionsAndZooms() {
+    assertEquals(1, WorldMap.devicesWithin(18));
+    assertEquals(1073741824, WorldMap.devicesWithin(3));
+    assertEquals(1, WorldMap.devicesWithin(WorldMap.regionAtLatLng(18, WorldMap.topLeft(51, 2))));
+    assertEquals(1073741824, WorldMap.devicesWithin(WorldMap.regionAtLatLng(3, WorldMap.topLeft(51, 2))));
+  }
+
+  @Test
+  public void t() {
+    assertEquals(Duration.ofSeconds(17 * 60 + 53), WorldMap.durationAtRate(1000000, 3));
+    assertEquals(Duration.ofSeconds(1), WorldMap.durationAtRate(1, 18));
+    assertEquals(Duration.ofSeconds(4), WorldMap.durationAtRate(1, 17));
+    assertEquals(Duration.ofSeconds(256), WorldMap.durationAtRate(4, 13));
+    assertEquals(Duration.ofSeconds(256), WorldMap.durationAtRate(100, 13));
   }
 
   // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.

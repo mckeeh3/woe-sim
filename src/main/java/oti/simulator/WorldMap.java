@@ -3,6 +3,7 @@ package oti.simulator;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +62,18 @@ interface WorldMap {
       default:
         return subRegionsForZoomX(region, 2);
     }
+  }
+
+  static int devicesWithin(Region region) {
+    return devicesWithin(region.zoom);
+  }
+
+  static int devicesWithin(int zoom) {
+    return (int) Math.pow(4, 18 - zoom);
+  }
+
+  static Duration durationAtRate(int actionsPerSecond, int zoom) {
+    return Duration.ofSeconds(devicesWithin(zoom) / actionsPerSecond);
   }
 
   private static List<Region> subRegionsForZoom0() {

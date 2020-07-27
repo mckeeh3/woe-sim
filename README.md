@@ -1,4 +1,4 @@
-# Of Things Internet Simulator - OTI Sim Microservice
+# What On Earth Simulator - woe-sim microservice
 
 TODO
 
@@ -6,7 +6,7 @@ TODO
 
 TODO
 
-### Deploy the OTI Sim Microservice
+### Deploy the WOE Sim Microservice
 
 #### Yugabyte on Kubernetes or MiniKube
 
@@ -37,7 +37,7 @@ ycqlsh> quit
 
 ##### Copy CQL DDL commands to the Yugabyte server
 
-From the oti-sim project directory.
+From the woe-sim project directory.
 
 ~~~bash
 $ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yb-demo/yb-tserver-0:/tmp                                                                  
@@ -58,20 +58,20 @@ Use HELP for help.
 ycqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
 ycqlsh> describe keyspaces;
 
-oti_simulator  system_schema  system_auth  system
+woe_simulator  system_schema  system_auth  system
 
-ycqlsh> use oti_simulator;
-ycqlsh:oti_simulator> describe tables;
+ycqlsh> use woe_simulator;
+ycqlsh:woe_simulator> describe tables;
 
 tag_views  tag_scanning         tag_write_progress
 messages   all_persistence_ids  metadata          
 
-ycqlsh:oti_simulator>quit
+ycqlsh:woe_simulator>quit
 ~~~
 
 ### Build and Deploy to MiniKube
 
-From the oti-sim project directory.
+From the woe-sim project directory.
 
 Before the build, set up the Docker environment variables using the following commands.
 ~~~bash
@@ -99,12 +99,12 @@ $ mvn clean package docker:build
 ...
 
 [INFO]
-[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-sim ---
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-sim/target/docker/oti-sim/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-sim/target/docker/oti-sim/tmp/docker-build.tar
-[INFO] DOCKER> [oti-sim:latest]: Created docker-build.tar in 405 milliseconds
-[INFO] DOCKER> [oti-sim:latest]: Built image sha256:ebe14
-[INFO] DOCKER> [oti-sim:latest]: Tag with latest,20200617-143425.6247cf9
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-sim ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
+[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 405 milliseconds
+[INFO] DOCKER> [woe-sim:latest]: Built image sha256:ebe14
+[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20200617-143425.6247cf9
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -115,11 +115,11 @@ $ mvn clean package docker:build
 
 Add the local docker image into MiniKube.
 ~~~bash
-$ minikube cache add oti-sim:latest
+$ minikube cache add woe-sim:latest
 $ minikube cache list
 ~~~
 ~~~              
-oti-sim:latest
+woe-sim:latest
 ~~~
 
 Create the Kubernetes namespace. The namespace only needs to be created once.
@@ -127,12 +127,12 @@ Create the Kubernetes namespace. The namespace only needs to be created once.
 $ kubectl apply -f kubernetes/namespace.json     
 ~~~
 ~~~
-namespace/oti-sim-1 created
+namespace/woe-sim-1 created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 ~~~bash
-$ kubectl config set-context --current --namespace=oti-sim-1
+$ kubectl config set-context --current --namespace=woe-sim-1
 ~~~
 ~~~
 Context "minikube" modified.
@@ -143,7 +143,7 @@ Deploy the Docker images to the Kubernetes cluster.
 $ kubectl apply -f kubernetes/akka-cluster.yml
 ~~~
 ~~~
-deployment.apps/oti-sim created
+deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
@@ -153,9 +153,9 @@ $ kubectl get pods
 ~~~
 ~~~
 NAME                      READY   STATUS    RESTARTS   AGE
-oti-sim-bd5bf8ddc-mbjmv   1/1     Running   0          8m28s
-oti-sim-bd5bf8ddc-tjtpk   1/1     Running   0          8m28s
-oti-sim-bd5bf8ddc-z8gh5   1/1     Running   0          8m28s
+woe-sim-bd5bf8ddc-mbjmv   1/1     Running   0          8m28s
+woe-sim-bd5bf8ddc-tjtpk   1/1     Running   0          8m28s
+woe-sim-bd5bf8ddc-z8gh5   1/1     Running   0          8m28s
 ~~~
 
 ### Build and Deploy to Google Cloud Container Registry
@@ -178,12 +178,12 @@ $ mvn clean package docker:build
 ...
 
 [INFO]
-[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ oti-sim ---
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/oti-sim/target/docker/oti-sim/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/oti-sim/target/docker/oti-sim/tmp/docker-build.tar
-[INFO] DOCKER> [oti-sim:latest]: Created docker-build.tar in 405 milliseconds
-[INFO] DOCKER> [oti-sim:latest]: Built image sha256:ebe14
-[INFO] DOCKER> [oti-sim:latest]: Tag with latest,20200617-143425.6247cf9
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-sim ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
+[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 405 milliseconds
+[INFO] DOCKER> [woe-sim:latest]: Built image sha256:ebe14
+[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20200617-143425.6247cf9
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -207,12 +207,12 @@ $ gcloud auth configure-docker
 
 Tag the Docker image.
 ~~~bash
-$ docker tag oti-sim gcr.io/$(gcloud config get-value project)/oti-sim:latest
+$ docker tag woe-sim gcr.io/$(gcloud config get-value project)/woe-sim:latest
 ~~~
 
 Push the Docker image to the ContainerRegistry.
 ~~~bash
-$ docker push gcr.io/$(gcloud config get-value project)/oti-sim:latest
+$ docker push gcr.io/$(gcloud config get-value project)/woe-sim:latest
 ~~~
 
 To view the uploaded container search for "container registry" from the Google Cloud Console.
@@ -222,7 +222,7 @@ $ gcloud container images list
 ~~~
 ~~~
 NAME
-gcr.io/akka-yuga/oti-sim
+gcr.io/akka-yuga/woe-sim
 Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
 ~~~
 
@@ -231,15 +231,15 @@ Create the Kubernetes namespace. The namespace only needs to be created once.
 $ kubectl apply -f kubernetes/namespace.json     
 ~~~
 ~~~
-namespace/oti-sim-1 created
+namespace/woe-sim-1 created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 ~~~bash
-$ kubectl config set-context --current --namespace=oti-sim-1
+$ kubectl config set-context --current --namespace=woe-sim-1
 ~~~
 ~~~
-Context "minikube" modified.
+Context "gke_akka-yuga_us-central1-c_yugadb" modified.
 ~~~
 
 Deploy the Docker images to the Kubernetes cluster.
@@ -247,7 +247,7 @@ Deploy the Docker images to the Kubernetes cluster.
 $ kubectl apply -f kubernetes/akka-cluster-gke.yml
 ~~~
 ~~~
-deployment.apps/oti-sim created
+deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
@@ -258,41 +258,41 @@ $ kubectl get pods
 ~~~
 ~~~
 NAME                       READY   STATUS    RESTARTS   AGE
-oti-sim-5d4949bf95-7z8mw   1/1     Running   0          21h
-oti-sim-5d4949bf95-b2hv9   1/1     Running   0          21h
-oti-sim-5d4949bf95-ggqsm   1/1     Running   0          21h
+woe-sim-5d4949bf95-7z8mw   1/1     Running   0          21h
+woe-sim-5d4949bf95-b2hv9   1/1     Running   0          21h
+woe-sim-5d4949bf95-ggqsm   1/1     Running   0          21h
 ~~~
 
 Open a shell on one of the pods.
 ~~~bash
-$ kubectl exec -it oti-sim-5d4949bf95-7z8mw -- /bin/bash                        
+$ kubectl exec -it woe-sim-5d4949bf95-7z8mw -- /bin/bash                        
 ~~~
 ~~~
-root@oti-sim-5d4949bf95-7z8mw:/# ll maven/oti-sim-1.0-SNAPSHOT.jar
--rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/oti-sim-1.0-SNAPSHOT.jar
-root@oti-sim-5d4949bf95-7z8mw:/# exit
+root@woe-sim-5d4949bf95-7z8mw:/# ll maven/woe-sim-1.0-SNAPSHOT.jar
+-rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/woe-sim-1.0-SNAPSHOT.jar
+root@woe-sim-5d4949bf95-7z8mw:/# exit
 exit
 ~~~
 
 ### Enable External Access
 
-Create a load balancer to enable access to the OTI Sim microservice HTTP endpoint.
+Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
 
 ~~~bash
-$ kubectl expose deployment oti-sim --type=LoadBalancer --name=oti-sim-service
+$ kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
 ~~~
 ~~~
-service/oti-sim-service exposed
+service/woe-sim-service exposed
 ~~~
 
 Next, view to external port assignments.
 
 ~~~bash
-$ kubectl get services oti-sim-service
+$ kubectl get services woe-sim-service
 ~~~
 ~~~
 NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-oti-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
+woe-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
 ~~~
 
 Note that in this example, the Kubernetes internal port 8558 external port assignment of 31809.
@@ -332,10 +332,10 @@ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
 100   570  100   570    0     0   6867      0 --:--:-- --:--:-- --:--:--  6867
 * Connection #0 to host 192.168.99.102 left intact
 {
-    "leader": "akka://oti-sim@172.17.0.11:25520",
+    "leader": "akka://woe-sim@172.17.0.11:25520",
     "members": [
         {
-            "node": "akka://oti-sim@172.17.0.11:25520",
+            "node": "akka://woe-sim@172.17.0.11:25520",
             "nodeUid": "7176760119283282430",
             "roles": [
                 "dc-default"
@@ -343,7 +343,7 @@ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
             "status": "Up"
         },
         {
-            "node": "akka://oti-sim@172.17.0.12:25520",
+            "node": "akka://woe-sim@172.17.0.12:25520",
             "nodeUid": "6695287075719844052",
             "roles": [
                 "dc-default"
@@ -351,7 +351,7 @@ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
             "status": "Up"
         },
         {
-            "node": "akka://oti-sim@172.17.0.13:25520",
+            "node": "akka://woe-sim@172.17.0.13:25520",
             "nodeUid": "-7478917548710968969",
             "roles": [
                 "dc-default"
@@ -359,27 +359,27 @@ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
             "status": "Up"
         }
     ],
-    "oldest": "akka://oti-sim@172.17.0.11:25520",
+    "oldest": "akka://woe-sim@172.17.0.11:25520",
     "oldestPerRole": {
-        "dc-default": "akka://oti-sim@172.17.0.11:25520"
+        "dc-default": "akka://woe-sim@172.17.0.11:25520"
     },
-    "selfNode": "akka://oti-sim@172.17.0.12:25520",
+    "selfNode": "akka://woe-sim@172.17.0.12:25520",
     "unreachable": []
 }
 ~~~
 
 ### Verify Internal HTTP access
-The OTI Twin and OTI Sim microservices communicate with each other via HTTP. Each
+The WOE Twin and WOE Sim microservices communicate with each other via HTTP. Each
 microservie needs to know the host name of the other service. Use the following to
 verify the hostname of this service.
 
 First, get the IP assigned to the load balancer.
 ~~~bash
-$ kubectl get services oti-sim-service
+$ kubectl get services woe-sim-service
 ~~~
 ~~~
 NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-oti-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   15m
+woe-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   15m
 ~~~
 
 In this example, the internal load balancer IP is 10.107.51.103.
@@ -396,15 +396,15 @@ Server:    10.96.0.10
 Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
 
 Name:      10.107.51.103
-Address 1: 10.107.51.103 oti-sim-service.oti-sim-1.svc.cluster.local
+Address 1: 10.107.51.103 woe-sim-service.woe-sim-1.svc.cluster.local
 / #
 ~~~
-Note that the load balancer host name is `oti-sim-service.oti-sim-1.svc.cluster.local`.
+Note that the load balancer host name is `woe-sim-service.woe-sim-1.svc.cluster.local`.
 
-Verify that the OTI Twin HTTP server is accessible via the host name.
+Verify that the WOE Twin HTTP server is accessible via the host name.
 ~~~
-/ # wget -qO- http://oti-sim-service.oti-sim-1.svc.cluster.local:8558/cluster/members
-{"leader":"akka://oti-sim@172.17.0.11:25520","members":[{"node":"akka://oti-sim@172.17.0.11:25520","nodeUid":"7176760119283282430","roles":["dc-default"],"status":"Up"},{"node":"akka://oti-sim@172.17.0.12:25520","nodeUid":"6695287075719844052","roles":["dc-default"],"status":"Up"},{"node":"akka://oti-sim@172.17.0.13:25520","nodeUid":"-7478917548710968969","roles":["dc-default"],"status":"Up"}],"oldest":"akka://oti-sim@172.17.0.11:25520","oldestPerRole":{"dc-default":"akka://oti-sim@172.17.0.11:25520"},"selfNode":"akka://oti-sim@172.17.0.13:25520","unreachable":[]}/ #
+/ # wget -qO- http://woe-sim-service.woe-sim-1.svc.cluster.local:8558/cluster/members
+{"leader":"akka://woe-sim@172.17.0.11:25520","members":[{"node":"akka://woe-sim@172.17.0.11:25520","nodeUid":"7176760119283282430","roles":["dc-default"],"status":"Up"},{"node":"akka://woe-sim@172.17.0.12:25520","nodeUid":"6695287075719844052","roles":["dc-default"],"status":"Up"},{"node":"akka://woe-sim@172.17.0.13:25520","nodeUid":"-7478917548710968969","roles":["dc-default"],"status":"Up"}],"oldest":"akka://woe-sim@172.17.0.11:25520","oldestPerRole":{"dc-default":"akka://woe-sim@172.17.0.11:25520"},"selfNode":"akka://woe-sim@172.17.0.13:25520","unreachable":[]}/ #
 / #
 ~~~
 Leave the shell using the `exit` command.
