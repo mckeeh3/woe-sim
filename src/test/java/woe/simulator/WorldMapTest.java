@@ -393,9 +393,9 @@ public class WorldMapTest {
   }
 
   @Test
-  public void regionForEntityId() {
+  public void regionForEntityIdWorks() {
     WorldMap.Region region0 = regionForZoom0();
-    WorldMap.Region region1 = WorldMap.regionForEntityId(entityIdOf(region0));
+    WorldMap.Region region1 = regionForEntityId(entityIdOf(region0));
 
     assertEquals(region0, region1);
 
@@ -404,7 +404,7 @@ public class WorldMapTest {
     for (int z = 1; z < zoomMax - 1; z++) {
       regions = subRegionsFor(regions.get(0));
     }
-    regions.forEach(region -> assertEquals(region, WorldMap.regionForEntityId(WorldMap.entityIdOf(region))));
+    regions.forEach(region -> assertEquals(region, regionForEntityId(entityIdOf(region))));
   }
 
   @Test
@@ -424,19 +424,21 @@ public class WorldMapTest {
 
   @Test
   public void devicesWithRegionsAndZooms() {
-    assertEquals(1, WorldMap.devicesWithin(18));
-    assertEquals(1073741824, WorldMap.devicesWithin(3));
-    assertEquals(1, WorldMap.devicesWithin(WorldMap.regionAtLatLng(18, WorldMap.topLeft(51, 2))));
-    assertEquals(1073741824, WorldMap.devicesWithin(WorldMap.regionAtLatLng(3, WorldMap.topLeft(51, 2))));
+    assertEquals(1, devicesWithin(18));
+    assertEquals(1073741824, devicesWithin(3));
+    assertEquals(1, devicesWithin(regionAtLatLng(18, topLeft(51, 2))));
+    assertEquals(1073741824, devicesWithin(regionAtLatLng(3, topLeft(51, 2))));
   }
 
   @Test
-  public void t() {
-    assertEquals(Duration.ofSeconds(17 * 60 + 53), WorldMap.durationAtRate(1000000, 3));
-    assertEquals(Duration.ofSeconds(1), WorldMap.durationAtRate(1, 18));
-    assertEquals(Duration.ofSeconds(4), WorldMap.durationAtRate(1, 17));
-    assertEquals(Duration.ofSeconds(256), WorldMap.durationAtRate(4, 13));
-    assertEquals(Duration.ofSeconds(256), WorldMap.durationAtRate(100, 13));
+  public void durationAtRateWorks() {
+    assertEquals(Duration.ofSeconds(17 * 60 + 53), durationAtRate(1000000, 3));
+    assertEquals(Duration.ofSeconds(1), durationAtRate(1, 18));
+    assertEquals(Duration.ofSeconds(4), durationAtRate(1, 17));
+    assertEquals(Duration.ofSeconds(256), durationAtRate(4, 13));
+    assertEquals(Duration.ofSeconds(devicesWithin(10) / 1000), durationAtRate(1000, 10));
+    assertEquals(Duration.ofSeconds(devicesWithin(8) / 4000), durationAtRate(4000, 8));
+    assertEquals(Duration.ofSeconds(devicesWithin(8) / 1000), durationAtRate(1000, 8));
   }
 
   // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.
