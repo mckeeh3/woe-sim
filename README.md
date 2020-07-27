@@ -8,15 +8,27 @@ TODO
 
 ### Deploy the WOE Sim Microservice
 
+The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
+See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
+
 #### Yugabyte on Kubernetes or MiniKube
 
 Follow the documentation for installing Kubernetes,
 [MiniKube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
 and
-[Yugabyte](https://download.yugabyte.com/#kubernetes).
+[Yugabyte](https://docs.yugabyte.com/latest/deploy/).
 
-The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
-See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
+Recommended default deployment changes.
+* Deploy with [Helm](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/gke/helm-chart/)
+* Use namespace `yugabyte-db`. `kubectl create namespace yugabyte-db`
+* Specify Kubernetes pod replicas, CPU request and limit when doing the `hrlm install` step.
+
+~~~bash
+$ helm install yugabyte-db yugabytedb/yugabyte --namespace yugabyte-db --wait \
+--set replicas.tserver=4,\
+resourse.tserver.requests.cpu=4,\
+resourse.tserver.limits.cpu=8
+~~~
 
 #### Create Cassandra Tables
 
