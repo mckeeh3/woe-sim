@@ -1,9 +1,9 @@
 
 // https://doc.akka.io/docs/akka-persistence-cassandra/current/journal.html#schema
 
-CREATE KEYSPACE IF NOT EXISTS oti_simulator WITH replication = {'class': 'NetworkTopologyStrategy', '<your_dc_name>' : 3 };
+CREATE KEYSPACE IF NOT EXISTS woe_simulator WITH replication = {'class': 'NetworkTopologyStrategy', '<your_dc_name>' : 3 };
 
-CREATE TABLE IF NOT EXISTS oti_simulator.messages (
+CREATE TABLE IF NOT EXISTS woe_simulator.messages (
   persistence_id text,
   partition_nr bigint,
   sequence_nr bigint,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS oti_simulator.messages (
     'min_sstable_size' : 50
     };
 
-CREATE TABLE IF NOT EXISTS oti_simulator.tag_views (
+CREATE TABLE IF NOT EXISTS woe_simulator.tag_views (
   tag_name text,
   persistence_id text,
   sequence_nr bigint,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS oti_simulator.tag_views (
     'min_sstable_size' : 50
     };
 
-CREATE TABLE IF NOT EXISTS oti_simulator.tag_write_progress(
+CREATE TABLE IF NOT EXISTS woe_simulator.tag_write_progress(
   persistence_id text,
   tag text,
   sequence_nr bigint,
@@ -71,16 +71,16 @@ CREATE TABLE IF NOT EXISTS oti_simulator.tag_write_progress(
   offset timeuuid,
   PRIMARY KEY (persistence_id, tag));
 
-CREATE TABLE IF NOT EXISTS oti_simulator.tag_scanning(
+CREATE TABLE IF NOT EXISTS woe_simulator.tag_scanning(
   persistence_id text,
   sequence_nr bigint,
   PRIMARY KEY (persistence_id));
 
-CREATE TABLE IF NOT EXISTS oti_simulator.metadata(
+CREATE TABLE IF NOT EXISTS woe_simulator.metadata(
   persistence_id text PRIMARY KEY,
   deleted_to bigint,
   properties map<text,text>);
 
-CREATE TABLE IF NOT EXISTS oti_simulator.all_persistence_ids(
+CREATE TABLE IF NOT EXISTS woe_simulator.all_persistence_ids(
   persistence_id text PRIMARY KEY);
 

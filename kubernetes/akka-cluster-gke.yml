@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: oti-sim
-  name: oti-sim
-  namespace: oti-sim-1
+    app: woe-sim
+  name: woe-sim
+  namespace: woe-sim-1
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: oti-sim
+      app: woe-sim
   template:
     metadata:
       labels:
-        app: oti-sim
-        actorSystemName: oti-sim
+        app: woe-sim
+        actorSystemName: woe-sim
     spec:
       containers:
-        - name: oti-sim
-          image: gcr.io/akka-yuga/oti-sim
+        - name: woe-sim
+          image: gcr.io/akka-yuga/woe-sim
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
@@ -61,13 +61,13 @@ spec:
               value: "2"
             - name: cassandra_host_port_1
               value: "yb-tservers.yugabyte.svc.cluster.local:9042"
-            - name: oti_simulator_http_server_host
-              value: "oti-sim-service.oti-sim-1.svc.cluster.local"
-            - name: oti_simulator_http_server_port
+            - name: woe_simulator_http_server_host
+              value: "woe-sim-service.woe-sim-1.svc.cluster.local"
+            - name: woe_simulator_http_server_port
               value: "8080"
-            - name: oti_twin_http_server_host
-              value: "oti-twin-service.oti-twin-1.svc.cluster.local"
-            - name: oti_twin_http_server_port
+            - name: woe_twin_http_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_http_server_port
               value: "8080"
 
 ---
@@ -75,7 +75,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
-  namespace: oti-sim-1
+  namespace: woe-sim-1
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["pods"]
@@ -85,12 +85,12 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
-  namespace: oti-sim-1
+  namespace: woe-sim-1
 subjects:
   # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
   # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
   - kind: User
-    name: system:serviceaccount:oti-sim-1:default
+    name: system:serviceaccount:woe-sim-1:default
 roleRef:
   kind: Role
   name: pod-reader
