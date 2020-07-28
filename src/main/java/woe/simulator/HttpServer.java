@@ -1,5 +1,6 @@
 package woe.simulator;
 
+import akka.Done;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
@@ -9,10 +10,14 @@ import akka.http.javadsl.Http;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
+import akka.pattern.StatusReply;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
+
+import java.time.Duration;
+import java.util.concurrent.CompletionStage;
 
 import static akka.http.javadsl.server.Directives.*;
 import static woe.simulator.WorldMap.entityIdOf;
@@ -21,7 +26,7 @@ import static woe.simulator.WorldMap.regionForZoom0;
 class HttpServer {
   private final ActorSystem<?> actorSystem;
   private final ClusterSharding clusterSharding;
-  private ActorRef<Region.Command> replyTo; // hack for unit testing
+  private final Duration operationTimeout;
 
   static HttpServer start(String host, int port, ActorSystem<?> actorSystem) {
     return new HttpServer(host, port, actorSystem);
@@ -30,18 +35,25 @@ class HttpServer {
   private HttpServer(String host, int port, ActorSystem<?> actorSystem) {
     this.actorSystem = actorSystem;
     clusterSharding = ClusterSharding.get(actorSystem);
+    operationTimeout = actorSystem.settings().config().getDuration("woe-simulator.http.server.operation-timeout");
 
     start(host, port);
   }
 
   private void start(String host, int port) {
-    Materializer materializer = Materializer.matFromSystem(actorSystem);
+    final Materializer materializer = Materializer.matFromSystem(actorSystem);
 
     Http.get(actorSystem.classicSystem())
         .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
-            ConnectHttp.toHost(host, port), materializer);
+            ConnectHttp.toHost(host, port), materializer).whenComplete((ok, failure) -> {
+              if (ok != null) {
+                log().info("HTTP Server started on {}:{}", host, "" + port);
+              } else {
+                log().error("Failed to start HTTP server", failure);
+                actorSystem.terminate();
+              }
+    });
 
-    log().info("HTTP Server started on {}:{}", host, "" + port);
   }
 
   private Route route() {
@@ -57,8 +69,10 @@ class HttpServer {
             selectionActionRequest -> {
               try {
                 log().debug("POST {}", selectionActionRequest);
-                submit(selectionActionRequest);
-                return complete(StatusCodes.OK, SelectionActionResponse.ok(StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller());
+                CompletionStage<StatusReply<Done>> requestDone = submit(selectionActionRequest);
+                return onComplete(requestDone, (__) ->
+                        complete(StatusCodes.OK, SelectionActionResponse.ok(StatusCodes.OK.intValue(), selectionActionRequest), Jackson.marshaller())
+                );
               } catch (IllegalArgumentException e) {
                 log().warn("POST failed {}", selectionActionRequest);
                 return complete(StatusCodes.BAD_REQUEST, SelectionActionResponse.failed(e.getMessage(), StatusCodes.BAD_REQUEST.intValue(), selectionActionRequest), Jackson.marshaller());
@@ -68,11 +82,10 @@ class HttpServer {
     );
   }
 
-  private void submit(SelectionActionRequest selectionActionRequest) {
-    Region.SelectionCommand selectionCommand = selectionActionRequest.asSelectionAction(replyTo);
+  protected CompletionStage<StatusReply<Done>> submit(SelectionActionRequest selectionActionRequest) {
     String entityId = entityIdOf(regionForZoom0());
     EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
-    entityRef.tell(selectionCommand);
+    return entityRef.ask(selectionActionRequest::asSelectionAction, operationTimeout);
   }
 
   public static class SelectionActionRequest {
@@ -103,7 +116,7 @@ class HttpServer {
       this(action, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
     }
 
-    Region.SelectionCommand asSelectionAction(ActorRef<Region.Command> replyTo) {
+    Region.SelectionCommand asSelectionAction(ActorRef<StatusReply<Done>> replyTo) {
       WorldMap.Region region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
       switch (action) {
         case "create":
@@ -152,11 +165,6 @@ class HttpServer {
     public String toString() {
       return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, selectionActionRequest);
     }
-  }
-
-  // Hack for unit testing
-  void replyTo(ActorRef<Region.Command> replyTo) {
-    this.replyTo = replyTo;
   }
 
   private Logger log() {

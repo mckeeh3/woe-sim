@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static woe.simulator.WorldMap.regionForZoom0;
 
 public class HttpServerTest {
-  private static HttpServer httpServer;
   private static String selectionUrl;
 
   @ClassRule
@@ -55,7 +54,7 @@ public class HttpServerTest {
 
     String host = testKit.system().settings().config().getString("woe.simulator.http.server.host");
     int port = testKit.system().settings().config().getInt("woe.simulator.http.server.port");
-    httpServer = HttpServer.start(host, port, testKit.system());
+    HttpServer.start(host, port, testKit.system());
     selectionUrl = String.format("http://%s:%d/selection", host, port);
   }
 
@@ -66,8 +65,6 @@ public class HttpServerTest {
     // Submit request to create a selected region in London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = WorldMap.regionAtLatLng(16, new WorldMap.LatLng(51.50079211, -0.11682093));
     HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", region);
-
-    httpServer.replyTo(probe.ref()); // hack to pass probe ref to entity messages
 
     HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
         .singleRequest(HttpRequest.POST(selectionUrl)
@@ -127,7 +124,7 @@ public class HttpServerTest {
   }
 
   private static Materializer materializer() {
-    return Materializer.matFromSystem(testKit.system().classicSystem());
+    return Materializer.matFromSystem(testKit.system());
   }
 
   private static String entityAsString(HttpResponse httpResponse, Materializer materializer) {

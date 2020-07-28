@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.IntStream;
 
 interface WorldMap {
@@ -15,7 +12,8 @@ interface WorldMap {
   int zoomMax = 18;
 
   static String entityIdOf(Region region) {
-    return String.format("region:%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
+    // Unless you hardcode locale this will give you a localized decimal separator format (, vs .)
+    return String.format(Locale.US, "region:%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
         region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
   }
 
