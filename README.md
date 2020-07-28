@@ -30,21 +30,72 @@ resource.tserver.requests.cpu=4,\
 resource.tserver.limits.cpu=8
 ~~~
 
+As shown in the Yugabyte documentation, verify the status of the deployment using the following command.
+~~~bash
+$ helm status yugabyte-db -n yugabyte-db
+~~~
+~~~
+NAME: yugabyte-db
+LAST DEPLOYED: Mon Jul 27 14:36:03 2020
+NAMESPACE: yugabyte-db
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Get YugabyteDB Pods by running this command:
+  kubectl --namespace yugabyte-db get pods
+
+2. Get list of YugabyteDB services that are running:
+  kubectl --namespace yugabyte-db get services
+
+3. Get information about the load balancer services:
+  kubectl get svc --namespace yugabyte-db
+
+4. Connect to one of the tablet server:
+  kubectl exec --namespace yugabyte-db -it yb-tserver-0 bash
+
+5. Run YSQL shell from inside of a tablet server:
+  kubectl exec --namespace yugabyte-db -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0.yb-tservers.yugabyte-db
+
+6. Cleanup YugabyteDB Pods
+  For helm 2:
+  helm delete yugabyte-db --purge
+  For helm 3:
+  helm delete yugabyte-db -n yugabyte-db
+  NOTE: You need to manually delete the persistent volume
+  kubectl delete pvc --namespace yugabyte-db -l app=yb-master
+  kubectl delete pvc --namespace yugabyte-db -l app=yb-tserver
+~~~
+
 #### Create Cassandra Tables
 
 Try the following commands to verify access to Cassandra CQL and PostgreSQL
 CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
 
-Cassandra CQL
+Cassandra CQL shell
 ~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
-
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+~~~
+~~~
 Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
 ycqlsh> quit
+~~~
+
+PostgreSQL shell
+~~~bash
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
+~~~
+~~~
+Defaulting container name to yb-tserver.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
+ysqlsh (11.2-YB-2.2.0.0-b0)
+Type "help" for help.
+
+yugabyte=# quit
 ~~~
 
 ##### Copy CQL DDL commands to the Yugabyte server
@@ -52,32 +103,38 @@ ycqlsh> quit
 From the woe-sim project directory.
 
 ~~~bash
-$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yb-demo/yb-tserver-0:/tmp                                                                  
+$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp                                                                  
 Defaulting container name to yb-tserver.
 ~~~
 
-##### Create the Cassandra and PostgreSQL Tables
+##### Create the Cassandra Tables
 Cassandra
 ~~~bash
-$ kubectl --namespace yb-demo exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
 ~~~
 ~~~
 Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yb-demo' to see all of the containers in this pod.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
+~~~
+~~~
 ycqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
 ycqlsh> describe keyspaces;
-
+~~~
+~~~
 woe_simulator  system_schema  system_auth  system
-
+~~~
+~~~
 ycqlsh> use woe_simulator;
 ycqlsh:woe_simulator> describe tables;
-
+~~~
+~~~
 tag_views  tag_scanning         tag_write_progress
 messages   all_persistence_ids  metadata          
-
+~~~
+~~~
 ycqlsh:woe_simulator>quit
 ~~~
 
@@ -168,122 +225,6 @@ NAME                      READY   STATUS    RESTARTS   AGE
 woe-sim-bd5bf8ddc-mbjmv   1/1     Running   0          8m28s
 woe-sim-bd5bf8ddc-tjtpk   1/1     Running   0          8m28s
 woe-sim-bd5bf8ddc-z8gh5   1/1     Running   0          8m28s
-~~~
-
-### Build and Deploy to Google Cloud Container Registry
-
-First, create a GKE (Google Kubernetes Engine) project. From the
-[Google Cloud Platform](https://console.cloud.google.com) Dashboard, click The
-triple bar icon at the top left and click Kubernetes Engine/Clusters. Follow the
-documentation TODO for creating a cluster and a project.
-
-Use the [Quickstart for Container Registry](https://cloud.google.com/container-registry/docs/quickstart)
-to create a Docker image container registry.
-
-Deploy [Yugabyte](https://download.yugabyte.com/#kubernetes) to the GKE cluster.
-
-Build the project, which will create a new Docker image.
-~~~bash
-$ mvn clean package docker:build
-~~~
-~~~
-...
-
-[INFO]
-[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-sim ---
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
-[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 405 milliseconds
-[INFO] DOCKER> [woe-sim:latest]: Built image sha256:ebe14
-[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20200617-143425.6247cf9
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  01:30 min
-[INFO] Finished at: 2020-06-19T09:25:15-04:00
-[INFO] ------------------------------------------------------------------------
-~~~
-
-Configure authentication to the Container Registry.
-See [Authentication methods](https://cloud.google.com/container-registry/docs/advanced-authentication).
-Here the [gcloud as a Docker credential helper](https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud-helper)
-method is used.
-~~~bash
-$ gcloud auth login
-~~~
-
-Configure Docker with the following command:
-~~~bash
-$ gcloud auth configure-docker
-~~~
-
-Tag the Docker image.
-~~~bash
-$ docker tag woe-sim gcr.io/$(gcloud config get-value project)/woe-sim:latest
-~~~
-
-Push the Docker image to the ContainerRegistry.
-~~~bash
-$ docker push gcr.io/$(gcloud config get-value project)/woe-sim:latest
-~~~
-
-To view the uploaded container search for "container registry" from the Google Cloud Console.
-You can also list the uploaded containers via the CLI.
-~~~bash
-$ gcloud container images list                    
-~~~
-~~~
-NAME
-gcr.io/akka-yuga/woe-sim
-Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
-~~~
-
-Create the Kubernetes namespace. The namespace only needs to be created once.
-~~~bash
-$ kubectl apply -f kubernetes/namespace.json     
-~~~
-~~~
-namespace/woe-sim-1 created
-~~~
-
-Set this namespace as the default for subsequent `kubectl` commands.
-~~~bash
-$ kubectl config set-context --current --namespace=woe-sim-1
-~~~
-~~~
-Context "gke_akka-yuga_us-central1-c_yugadb" modified.
-~~~
-
-Deploy the Docker images to the Kubernetes cluster.
-~~~bash
-$ kubectl apply -f kubernetes/akka-cluster-gke.yml
-~~~
-~~~
-deployment.apps/woe-sim created
-role.rbac.authorization.k8s.io/pod-reader created
-rolebinding.rbac.authorization.k8s.io/read-pods created
-~~~
-
-View the status of the running pods.
-~~~bash
-$ kubectl get pods   
-~~~
-~~~
-NAME                       READY   STATUS    RESTARTS   AGE
-woe-sim-5d4949bf95-7z8mw   1/1     Running   0          21h
-woe-sim-5d4949bf95-b2hv9   1/1     Running   0          21h
-woe-sim-5d4949bf95-ggqsm   1/1     Running   0          21h
-~~~
-
-Open a shell on one of the pods.
-~~~bash
-$ kubectl exec -it woe-sim-5d4949bf95-7z8mw -- /bin/bash                        
-~~~
-~~~
-root@woe-sim-5d4949bf95-7z8mw:/# ll maven/woe-sim-1.0-SNAPSHOT.jar
--rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/woe-sim-1.0-SNAPSHOT.jar
-root@woe-sim-5d4949bf95-7z8mw:/# exit
-exit
 ~~~
 
 ### Enable External Access
@@ -425,22 +366,152 @@ Leave the shell using the `exit` command.
 pod "dns-test" deleted
 ~~~
 
+### Build and Deploy to Google Cloud Container Registry
 
+First, create a GKE (Google Kubernetes Engine) project. From the
+[Google Cloud Platform](https://console.cloud.google.com) Dashboard, click The
+triple bar icon at the top left and click Kubernetes Engine/Clusters. Follow the
+documentation TODO for creating a cluster and a project.
 
+Use the [Quickstart for Container Registry](https://cloud.google.com/container-registry/docs/quickstart)
+to create a Docker image container registry.
 
+Deploy [Yugabyte](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/gke/helm-chart/) to the GKE cluster.
 
+Build the project, which will create a new Docker image.
+~~~bash
+$ mvn clean package docker:build
+~~~
+~~~
+...
 
+[INFO]
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-sim ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
+[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 405 milliseconds
+[INFO] DOCKER> [woe-sim:latest]: Built image sha256:ebe14
+[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20200617-143425.6247cf9
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:30 min
+[INFO] Finished at: 2020-06-19T09:25:15-04:00
+[INFO] ------------------------------------------------------------------------
+~~~
 
+Configure authentication to the Container Registry.
+See [Authentication methods](https://cloud.google.com/container-registry/docs/advanced-authentication).
+Here the [gcloud as a Docker credential helper](https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud-helper)
+method is used.
+~~~bash
+$ gcloud auth login
+~~~
 
+Configure Docker with the following command:
+~~~bash
+$ gcloud auth configure-docker
+~~~
 
+Tag the Docker image.
+~~~bash
+$ docker tag woe-sim gcr.io/$(gcloud config get-value project)/woe-sim:latest
+~~~
 
+Push the Docker image to the ContainerRegistry.
+~~~bash
+$ docker push gcr.io/$(gcloud config get-value project)/woe-sim:latest
+~~~
 
+To view the uploaded container search for "container registry" from the Google Cloud Console.
+You can also list the uploaded containers via the CLI.
+~~~bash
+$ gcloud container images list                    
+~~~
+~~~
+NAME
+gcr.io/akka-yuga/woe-sim
+Only listing images in gcr.io/akka-yuga. Use --repository to list images in other repositories.
+~~~
 
+Create the Kubernetes namespace. The namespace only needs to be created once.
+~~~bash
+$ kubectl create namespace woe-sim-1                                                                  
+~~~
+~~~
+namespace/woe-sim-1 created
+~~~
 
+Set this namespace as the default for subsequent `kubectl` commands.
+~~~bash
+$ kubectl config set-context --current --namespace=woe-sim-1
+~~~
+~~~
+Context "gke_akka-yuga_us-central1-c_yugadb" modified.
+~~~
 
+Deploy the Docker images to the Kubernetes cluster.
+~~~bash
+$ kubectl apply -f kubernetes/akka-cluster-gke.yml
+~~~
+~~~
+deployment.apps/woe-sim created
+role.rbac.authorization.k8s.io/pod-reader created
+rolebinding.rbac.authorization.k8s.io/read-pods created
+~~~
 
+View the status of the running pods.
+~~~bash
+$ kubectl get pods   
+~~~
+~~~
+NAME                       READY   STATUS    RESTARTS   AGE
+woe-sim-5d4949bf95-7z8mw   1/1     Running   0          21h
+woe-sim-5d4949bf95-b2hv9   1/1     Running   0          21h
+woe-sim-5d4949bf95-ggqsm   1/1     Running   0          21h
+~~~
 
+Open a shell on one of the pods.
+~~~bash
+$ kubectl exec -it woe-sim-5d4949bf95-7z8mw -- /bin/bash                        
+~~~
+~~~
+root@woe-sim-5d4949bf95-7z8mw:/# ll maven/woe-sim-1.0-SNAPSHOT.jar
+-rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/woe-sim-1.0-SNAPSHOT.jar
+root@woe-sim-5d4949bf95-7z8mw:/# exit
+exit
+~~~
+#### Scale Running Akka Nodes/K8 pods
 
+~~~bash
+$ kubectl scale --replicas=10 deployment/woe-sim
+~~~
 
+### Enable External Access
 
-end-of-line
+Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
+
+~~~bash
+$ kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
+~~~
+~~~
+service/woe-sim-service exposed
+~~~
+
+~~~bash
+$ kubectl get services woe-sim-service
+~~~
+~~~
+NAME              TYPE           CLUSTER-IP   EXTERNAL-IP   PORT(S)                                        AGE
+woe-sim-service   LoadBalancer   10.89.3.57   <pending>     2552:31693/TCP,8558:31376/TCP,8080:31238/TCP   9s
+~~~
+
+It takes a few minutes for an external IP to be assigned. Note the `EXTERNAL-IP` above eventually changes from `<pending>` to the assigned external IP, shown below.
+
+~~~bash
+$ kubectl get services woe-sim-service
+~~~
+~~~
+NAME              TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                                        AGE
+woe-sim-service   LoadBalancer   10.89.3.57   35.232.168.63   2552:31693/TCP,8558:31376/TCP,8080:31238/TCP   5m21s
+~~~
