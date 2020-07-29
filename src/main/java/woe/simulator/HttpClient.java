@@ -48,6 +48,8 @@ class HttpClient {
           if (r.status().isSuccess()) {
             return Jackson.unmarshaller(TelemetryResponse.class).unmarshal(r.entity(), materializer);
           } else {
+            // make sure you don't leak connections here for non-success
+            r.discardEntityBytes(materializer);
             return CompletableFuture.completedFuture(new TelemetryResponse(r.status().reason(), r.status().intValue(), telemetryRequest));
           }
         });

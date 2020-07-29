@@ -1,5 +1,6 @@
 package woe.simulator;
 
+import akka.Done;
 import akka.actor.ActorSystem;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.testkit.typed.javadsl.TestProbe;
@@ -14,6 +15,7 @@ import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.server.Route;
+import akka.pattern.StatusReply;
 import akka.stream.Materializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
@@ -73,7 +75,7 @@ public class RegionTest {
   @Ignore
   public void createZoom18Selection() {
     testKit.system().log().debug("enter createZoom18Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 18;
     String entityId = entityIdOf(regionForZoom0());
@@ -83,7 +85,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(1, Duration.ofSeconds(30));
+    probe.receiveMessage();
     testKit.system().log().debug("exit createZoom18Selection");
   }
 
@@ -91,7 +93,7 @@ public class RegionTest {
   @Test
   public void createZoom17Selection() {
     testKit.system().log().debug("enter createZoom17Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 17;
     String entityId = entityIdOf(regionForZoom0());
@@ -101,7 +103,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(4, Duration.ofSeconds(30));
+    probe.receiveMessage(Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom17Selection");
   }
 
@@ -109,7 +111,7 @@ public class RegionTest {
   @Test
   public void createZoom16Selection() {
     testKit.system().log().debug("enter createZoom16Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 16;
     String entityId = entityIdOf(regionForZoom0());
@@ -119,14 +121,14 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(16, Duration.ofSeconds(60));
+    probe.receiveMessage(Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom16Selection");
   }
 
   @Test
   public void createZoom15Selection() {
     testKit.system().log().debug("enter createZoom15Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 15;
     String entityId = entityIdOf(regionForZoom0());
@@ -136,7 +138,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(64, Duration.ofSeconds(30));
+    probe.receiveMessage(Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom15Selection");
   }
 
@@ -144,7 +146,7 @@ public class RegionTest {
   @Test
   public void createZoom13Selection() {
     testKit.system().log().debug("enter createZoom15Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 13;
     String entityId = entityIdOf(regionForZoom0());
@@ -154,7 +156,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(1024, Duration.ofSeconds(30));
+    probe.receiveMessage(Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom15Selection");
   }
 
@@ -162,7 +164,7 @@ public class RegionTest {
   @Test
   public void createZoom10Selection() {
     testKit.system().log().debug("enter createZoom10Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 10;
     String entityId = entityIdOf(regionForZoom0());
@@ -172,7 +174,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(65536, Duration.ofSeconds(60));
+    probe.receiveMessage(Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom10Selection");
   }
 
@@ -180,7 +182,7 @@ public class RegionTest {
   @Test
   public void createZoom09Selection() {
     testKit.system().log().debug("enter createZoom09Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 9;
     String entityId = entityIdOf(regionForZoom0());
@@ -190,7 +192,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(262144, Duration.ofSeconds(60));
+    probe.receiveMessage(Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom09Selection");
   }
 
@@ -198,7 +200,7 @@ public class RegionTest {
   @Test
   public void createZoom08Selection() {
     testKit.system().log().debug("enter createZoom08Selection");
-    TestProbe<Region.Command> probe = testKit.createTestProbe();
+    TestProbe<StatusReply<Done>> probe = testKit.createTestProbe();
 
     int zoom = 8;
     String entityId = entityIdOf(regionForZoom0());
@@ -208,7 +210,7 @@ public class RegionTest {
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
     entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
 
-    probe.receiveSeveralMessages(1048576, Duration.ofMinutes(10));
+    probe.receiveMessage(Duration.ofMinutes(10));
     testKit.system().log().debug("exit createZoom08Selection");
   }
 

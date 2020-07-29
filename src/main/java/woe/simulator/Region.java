@@ -1,5 +1,6 @@
 package woe.simulator;
 
+import akka.Done;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -7,14 +8,18 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
+import akka.pattern.StatusReply;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.SnapshotSelectionCriteria;
 import akka.persistence.typed.javadsl.*;
+import akka.stream.Materializer;
+import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
-import java.util.List;
-import java.util.Objects;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletionStage;
 
 class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.State> {
   final String entityId;
@@ -22,6 +27,10 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   final ClusterSharding clusterSharding;
   final ActorContext<Command> actorContext;
   final HttpClient httpClient;
+  // FIXME this duration could be scaled with the zoom level of the region since the more zoomed out the more sub regions
+  // will be involved in handling a request
+  private final Duration subRegionRequestTimeout;
+  private final int subRegionRequestParallelism;
   static final EntityTypeKey<Command> entityTypeKey = EntityTypeKey.create(Command.class, Region.class.getSimpleName());
 
   static Behavior<Command> create(String entityId, ClusterSharding clusterSharding) {
@@ -35,6 +44,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     this.clusterSharding = clusterSharding;
     this.actorContext = actorContext;
     this.httpClient = new HttpClient(actorContext.getSystem());
+    this.subRegionRequestTimeout = actorContext.getSystem().settings().config().getDuration("woe.simulator.subregion-request-timeout");
+    this.subRegionRequestParallelism = actorContext.getSystem().settings().config().getInt("woe.simulator.subregion-request-parallelism");
   }
 
   @Override
@@ -75,6 +86,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       } else {
         if (state.region.isDevice()) {
           notifyTwin(state, selectionCreate);
+          // Note that we don't wait for notify twin to complete before we ack here so that will not be part
+          // of backpressure
+          selectionCreate.replyTo.tell(StatusReply.Ack());
         } else {
           forwardSelectionToSubRegions(state, selectionCreate);
         }
@@ -154,9 +168,6 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private void eventPersisted(State state, SelectionCommand selectionCommand) {
-    if (region.isDevice() && selectionCommand.replyTo != null) {
-      selectionCommand.replyTo.tell(selectionCommand); // hack for unit testing
-    }
     if (state.region.isDevice()) {
       notifyTwin(state, selectionCommand);
     } else {
@@ -170,14 +181,35 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
           if (t.httpStatusCode != 200) {
             log().warn("Telemetry request failed {}", t);
           }
+          // not sure if you want to fail the entire request if there is an error code here?
+          selectionCommand.replyTo.tell(StatusReply.ack());
         });
   }
 
   private void forwardSelectionToSubRegions(State state, SelectionCommand selectionCommand) {
-    List<WorldMap.Region> subRegions = WorldMap.subRegionsFor(state.region);
-    subRegions.forEach(region -> {
-      EntityRef<Command> entityRef = clusterSharding.entityRefFor(entityTypeKey, WorldMap.entityIdOf(region));
-      entityRef.tell(selectionCommand);
+    final List<WorldMap.Region> subRegions = WorldMap.subRegionsFor(state.region);
+    CompletionStage<Done> allDone = Source.from(subRegions)
+      .mapAsync(
+              subRegionRequestParallelism,
+        subRegion -> {
+          EntityRef<Command> entityRef = clusterSharding.entityRefFor(entityTypeKey, WorldMap.entityIdOf(region));
+          return entityRef.askWithStatus(selectionCommand::withReplyTo, subRegionRequestTimeout);
+        })
+      // If we'd want to do an aggregate of how many actors were touched instead of ack
+      // we could use StatusReply<Integer> instead of Ack and use .runFold here to compute
+      .run(Materializer.matFromSystem(actorContext.getSystem()));
+
+    final Logger log = actorContext.getSystem().log();
+    allDone.whenComplete((ok, failure) -> {
+      if (ok != null) {
+        log.debug("Got ack from all {} subregions, sending ack back to requestee", subRegions.size());
+        selectionCommand.replyTo.tell(StatusReply.Ack());
+      } else {
+        // note we are in a future callback here so it is not safe to use actor logger here
+        log.error("Failed ack to get ack from all subregions", failure);
+        selectionCommand.replyTo.tell(StatusReply.error("Forwarding to subregion failed in " + persistenceId() +
+                " after " + subRegionRequestTimeout + ", " + failure.getMessage()));
+      }
     });
   }
 
@@ -191,15 +223,17 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
     public final Action action;
     public final WorldMap.Region region;
-    public final ActorRef<Command> replyTo;
+    public final ActorRef<StatusReply<Done>> replyTo;
 
-    public SelectionCommand(Action action, WorldMap.Region region, ActorRef<Command> replyTo) {
+    public SelectionCommand(Action action, WorldMap.Region region, ActorRef<StatusReply<Done>> replyTo) {
       this.action = action;
       this.region = region;
-      this.replyTo = replyTo; // used for unit testing
+      this.replyTo = replyTo;
     }
 
     abstract SelectionCommand with(WorldMap.Region region);
+
+    public abstract SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo);
 
     @Override
     public boolean equals(Object o) {
@@ -223,8 +257,14 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class SelectionCreate extends SelectionCommand {
-    public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+    // I think there's a compiler flag so you don't really need the @JsonProperty annotations but the field names can be used
+    public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<StatusReply<Done>> replyTo) {
       super(Action.create, region, replyTo);
+    }
+
+    @Override
+    public SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo) {
+      return new SelectionCreate(region, replyTo);
     }
 
     SelectionCreate with(WorldMap.Region region) {
@@ -233,8 +273,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class SelectionDelete extends SelectionCommand {
-    public SelectionDelete(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+    public SelectionDelete(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<StatusReply<Done>> replyTo) {
       super(Action.delete, region, replyTo);
+    }
+
+    @Override
+    public SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo) {
+      return new SelectionDelete(region, replyTo);
     }
 
     SelectionDelete with(WorldMap.Region region) {
@@ -243,7 +288,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class SelectionHappy extends SelectionCommand {
-    public SelectionHappy(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+
+    @Override
+    public SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo) {
+      return new SelectionHappy(region, replyTo);
+    }
+
+    public SelectionHappy(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<StatusReply<Done>> replyTo) {
       super(Action.happy, region, replyTo);
     }
 
@@ -253,9 +304,15 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class SelectionSad extends SelectionCommand {
-    public SelectionSad(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+    public SelectionSad(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<StatusReply<Done>> replyTo) {
       super(Action.sad, region, replyTo);
     }
+
+    @Override
+    public SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo) {
+      return new SelectionSad(region, replyTo);
+    }
+
 
     SelectionSad with(WorldMap.Region region) {
       return new SelectionSad(region, this.replyTo);
@@ -263,9 +320,14 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class PingPartiallySelected extends SelectionCommand {
-    public PingPartiallySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+    public PingPartiallySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<StatusReply<Done>> replyTo) {
       super(Action.ping, region, replyTo);
     }
+    @Override
+    public SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo) {
+      return new PingPartiallySelected(region, replyTo);
+    }
+
 
     @Override
     PingPartiallySelected with(WorldMap.Region region) {
@@ -274,9 +336,15 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   public static final class PingFullySelected extends SelectionCommand {
-    public PingFullySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
+    public PingFullySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<StatusReply<Done>> replyTo) {
       super(Action.ping, region, replyTo);
     }
+
+    @Override
+    public SelectionCommand withReplyTo(ActorRef<StatusReply<Done>> replyTo) {
+      return new PingFullySelected(region, replyTo);
+    }
+
 
     @Override
     PingFullySelected with(WorldMap.Region region) {
