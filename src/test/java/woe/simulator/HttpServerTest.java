@@ -1,5 +1,7 @@
 package woe.simulator;
 
+import akka.actor.testkit.typed.javadsl.ActorTestKit;
+import akka.actor.testkit.typed.javadsl.SerializationTestKit;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.testkit.typed.javadsl.TestProbe;
 import akka.cluster.Cluster;
@@ -111,6 +113,23 @@ public class HttpServerTest {
     assertTrue(httpResponse.status().isSuccess());
     String entity = entityAsString(httpResponse, materializer());
     assertNotNull(entity);
+  }
+
+  @Test
+  public void serializeDeserializeSelectionActionRequest() {
+    final SerializationTestKit serializationTestKit = ActorTestKit.create(testKit.system()).serializationTestKit();
+
+    final HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", 100, 3, 1, 1, 0, 0);
+    serializationTestKit.verifySerialization(selectionActionRequest, true);
+  }
+
+  @Test
+  public void serializeDeserializeSelectionActionResponse() {
+    final SerializationTestKit serializationTestKit = ActorTestKit.create(testKit.system()).serializationTestKit();
+
+    final HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", 100, 3, 1, 1, 0, 0);
+    final HttpServer.SelectionActionResponse selectionActionResponse = new HttpServer.SelectionActionResponse("test", 200, selectionActionRequest);
+    serializationTestKit.verifySerialization(selectionActionResponse, true);
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {

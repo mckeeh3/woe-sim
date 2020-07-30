@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
+import java.util.Objects;
+
 import static akka.http.javadsl.server.Directives.*;
 import static woe.simulator.WorldMap.entityIdOf;
 import static woe.simulator.WorldMap.regionForZoom0;
@@ -75,7 +77,7 @@ class HttpServer {
     entityRef.tell(selectionCommand);
   }
 
-  public static class SelectionActionRequest {
+  public static class SelectionActionRequest implements CborSerializable {
     public final String action;
     public final int rate;
     public final int zoom;
@@ -85,14 +87,7 @@ class HttpServer {
     public final double botRightLng;
 
     @JsonCreator
-    public SelectionActionRequest(
-        @JsonProperty("action") String action,
-        @JsonProperty("rate") int rate,
-        @JsonProperty("zoom") int zoom,
-        @JsonProperty("topLeftLat") double topLeftLat,
-        @JsonProperty("topLeftLng") double topLeftLng,
-        @JsonProperty("botRightLat") double botRightLat,
-        @JsonProperty("botRightLng") double botRightLng) {
+    public SelectionActionRequest(String action, int rate, int zoom, double topLeftLat, double topLeftLng, double botRightLat, double botRightLng) {
       this.action = action;
       this.rate = rate;
       this.zoom = zoom;
@@ -123,21 +118,37 @@ class HttpServer {
     }
 
     @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      SelectionActionRequest that = (SelectionActionRequest) o;
+      return rate == that.rate &&
+          zoom == that.zoom &&
+          Double.compare(that.topLeftLat, topLeftLat) == 0 &&
+          Double.compare(that.topLeftLng, topLeftLng) == 0 &&
+          Double.compare(that.botRightLat, botRightLat) == 0 &&
+          Double.compare(that.botRightLng, botRightLng) == 0 &&
+          action.equals(that.action);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(action, rate, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+    }
+
+    @Override
     public String toString() {
-      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
+      return String.format("%s[%s, %d, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, rate, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
     }
   }
 
-  public static class SelectionActionResponse {
+  public static class SelectionActionResponse implements CborSerializable {
     public final String message;
     public final int httpStatusCode;
     public final SelectionActionRequest selectionActionRequest;
 
     @JsonCreator
-    public SelectionActionResponse(
-        @JsonProperty("message") String message,
-        @JsonProperty("httpStatusCode") int httpStatusCode,
-        @JsonProperty("selectionActionRequest") SelectionActionRequest selectionActionRequest) {
+    public SelectionActionResponse(String message, int httpStatusCode, SelectionActionRequest selectionActionRequest) {
       this.message = message;
       this.httpStatusCode = httpStatusCode;
       this.selectionActionRequest = selectionActionRequest;
@@ -149,6 +160,21 @@ class HttpServer {
 
     static SelectionActionResponse failed(String message, int httpStatusCode, SelectionActionRequest selectionActionRequest) {
       return new SelectionActionResponse(message, httpStatusCode, selectionActionRequest);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      SelectionActionResponse that = (SelectionActionResponse) o;
+      return httpStatusCode == that.httpStatusCode &&
+          message.equals(that.message) &&
+          selectionActionRequest.equals(that.selectionActionRequest);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(message, httpStatusCode, selectionActionRequest);
     }
 
     @Override
