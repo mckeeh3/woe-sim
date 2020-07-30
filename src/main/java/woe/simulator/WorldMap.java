@@ -76,6 +76,19 @@ interface WorldMap {
     return Duration.ofSeconds(devicesWithin(zoom) / actionsPerSecond);
   }
 
+  static int regionCountForSelectionStack(int selectionZoom) {
+    int count = 0;
+    for (int i = 0; i < 19; i++) {
+      int zoom = selectionZoom + i;
+      count += zoom > 18 ? 1 : devicesWithin(zoom);
+    }
+    return count;
+  }
+
+  static int regionCountForSelectionAtZoom(int selectionZoom, int countZoom) {
+    return 0;
+  }
+
   private static List<Region> subRegionsForZoom0() {
     List<Region> regions = new ArrayList<>();
     regions.add(region(1, topLeft(90, -180), botRight(-90, 0)));

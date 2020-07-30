@@ -65,7 +65,7 @@ public class HttpServerTest {
 
     // Submit request to create a selected region in London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = WorldMap.regionAtLatLng(16, new WorldMap.LatLng(51.50079211, -0.11682093));
-    HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", region);
+    HttpServer.SelectionActionRequest selectionActionRequest = new HttpServer.SelectionActionRequest("create", 100, region);
 
     httpServer.replyTo(probe.ref()); // hack to pass probe ref to entity messages
 

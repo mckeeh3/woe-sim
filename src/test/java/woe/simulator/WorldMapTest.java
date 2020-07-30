@@ -441,13 +441,25 @@ public class WorldMapTest {
     assertEquals(Duration.ofSeconds(devicesWithin(8) / 1000), durationAtRate(1000, 8));
   }
 
+  @Test
+  public void regionCountForSelectionStackWorks() {
+    assertEquals(19, regionCountForSelectionStack(18));
+    int count = 17 + IntStream.rangeClosed(17, 18).map(WorldMap::devicesWithin).reduce(0, Integer::sum);
+    assertEquals(count, regionCountForSelectionStack(17));
+    count = 16 + IntStream.rangeClosed(16, 18).map(WorldMap::devicesWithin).reduce(0, Integer::sum);
+    assertEquals(count, regionCountForSelectionStack(16));
+    count = 15 + IntStream.rangeClosed(15, 18).map(WorldMap::devicesWithin).reduce(0, Integer::sum);
+    assertEquals(count, regionCountForSelectionStack(15));
+    count = 3 + IntStream.rangeClosed(3, 18).map(WorldMap::devicesWithin).reduce(0, Integer::sum);
+    assertEquals(count, regionCountForSelectionStack(3));
+  }
+
   // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.
   @Ignore
   @Test
   public void calculateIotDevicesSelectedPerZoomLevel() {
     IntStream.range(0, 16).forEach(zoom -> {
-      double devices = Math.pow(4, zoom);
-      System.out.printf("Zoom %2d %,1.0f%n", 18 - zoom, devices);
+      System.out.printf("Zoom %2d %,d%n", 18 - zoom, devicesWithin(18 - zoom));
     });
   }
 

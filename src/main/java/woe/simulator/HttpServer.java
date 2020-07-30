@@ -77,6 +77,7 @@ class HttpServer {
 
   public static class SelectionActionRequest {
     public final String action;
+    public final int rate;
     public final int zoom;
     public final double topLeftLat;
     public final double topLeftLng;
@@ -86,12 +87,14 @@ class HttpServer {
     @JsonCreator
     public SelectionActionRequest(
         @JsonProperty("action") String action,
+        @JsonProperty("rate") int rate,
         @JsonProperty("zoom") int zoom,
         @JsonProperty("topLeftLat") double topLeftLat,
         @JsonProperty("topLeftLng") double topLeftLng,
         @JsonProperty("botRightLat") double botRightLat,
         @JsonProperty("botRightLng") double botRightLng) {
       this.action = action;
+      this.rate = rate;
       this.zoom = zoom;
       this.topLeftLat = topLeftLat;
       this.topLeftLng = topLeftLng;
@@ -99,8 +102,8 @@ class HttpServer {
       this.botRightLng = botRightLng;
     }
 
-    SelectionActionRequest(String action, WorldMap.Region region) {
-      this(action, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
+    SelectionActionRequest(String action, int rate, WorldMap.Region region) {
+      this(action, rate, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
     }
 
     Region.SelectionCommand asSelectionAction(ActorRef<Region.Command> replyTo) {
