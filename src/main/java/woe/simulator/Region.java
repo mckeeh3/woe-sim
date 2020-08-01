@@ -10,9 +10,11 @@ import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.SnapshotSelectionCriteria;
 import akka.persistence.typed.javadsl.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -123,7 +125,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         if (state.region.isDevice()) {
           notifyTwin(state, pingPartiallySelected);
         } else {
-          forwardSelectionToSubRegions(state, new PingFullySelected(state.region, pingPartiallySelected.replyTo));
+          forwardSelectionToSubRegions(state, pingPartiallySelected.asPingFullySelected(state.region));
         }
       } else if (state.isPartiallySelected()) {
         forwardSelectionToSubRegions(state, pingPartiallySelected);
@@ -141,7 +143,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
           forwardSelectionToSubRegions(state, pingFullySelected);
         }
       } else { // this region should be fully selected, so fix it. this is a form of self healing.
-        return acceptSelection(new SelectionCreate(state.region, pingFullySelected.replyTo));
+        return acceptSelection((pingFullySelected.asSelectionCreate(state.region)));
       }
     }
     return Effect().none();
@@ -191,11 +193,15 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
     public final Action action;
     public final WorldMap.Region region;
+    public final Instant deadline;
+    public final boolean delayed;
     public final ActorRef<Command> replyTo;
 
-    public SelectionCommand(Action action, WorldMap.Region region, ActorRef<Command> replyTo) {
+    public SelectionCommand(Action action, WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
       this.action = action;
       this.region = region;
+      this.deadline = deadline;
+      this.delayed = delayed;
       this.replyTo = replyTo; // used for unit testing
     }
 
@@ -206,81 +212,97 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       SelectionCommand that = (SelectionCommand) o;
-      return action == that.action &&
+      return delayed == that.delayed &&
+          action == that.action &&
           region.equals(that.region) &&
+          deadline.equals(that.deadline) &&
           Objects.equals(replyTo, that.replyTo);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(action, region, replyTo);
+      return Objects.hash(action, region, deadline, delayed, replyTo);
     }
 
     @Override
     public String toString() {
-      return String.format("%s[%s, %s]", getClass().getSimpleName(), action, region);
+      return String.format("%s[%s, %s, %s, %b]", getClass().getSimpleName(), action, region, deadline, delayed);
     }
   }
 
   public static final class SelectionCreate extends SelectionCommand {
-    public SelectionCreate(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(Action.create, region, replyTo);
+    @JsonCreator
+    public SelectionCreate(WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
+      super(Action.create, region, deadline, delayed, replyTo);
     }
 
     SelectionCreate with(WorldMap.Region region) {
-      return new SelectionCreate(region, this.replyTo);
+      return new SelectionCreate(region, deadline, delayed, replyTo);
     }
   }
 
   public static final class SelectionDelete extends SelectionCommand {
-    public SelectionDelete(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(Action.delete, region, replyTo);
+    @JsonCreator
+    public SelectionDelete(WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
+      super(Action.delete, region, deadline, delayed, replyTo);
     }
 
     SelectionDelete with(WorldMap.Region region) {
-      return new SelectionDelete(region, this.replyTo);
+      return new SelectionDelete(region, deadline, delayed, replyTo);
     }
   }
 
   public static final class SelectionHappy extends SelectionCommand {
-    public SelectionHappy(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(Action.happy, region, replyTo);
+    @JsonCreator
+    public SelectionHappy(WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
+      super(Action.happy, region, deadline, delayed, replyTo);
     }
 
     SelectionHappy with(WorldMap.Region region) {
-      return new SelectionHappy(region, this.replyTo);
+      return new SelectionHappy(region, deadline, delayed, replyTo);
     }
   }
 
   public static final class SelectionSad extends SelectionCommand {
-    public SelectionSad(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(Action.sad, region, replyTo);
+    @JsonCreator
+    public SelectionSad(WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
+      super(Action.sad, region, deadline, delayed, replyTo);
     }
 
     SelectionSad with(WorldMap.Region region) {
-      return new SelectionSad(region, this.replyTo);
+      return new SelectionSad(region, deadline, delayed, replyTo);
     }
   }
 
   public static final class PingPartiallySelected extends SelectionCommand {
-    public PingPartiallySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(Action.ping, region, replyTo);
+    @JsonCreator
+    public PingPartiallySelected(WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
+      super(Action.ping, region, deadline, delayed, replyTo);
     }
 
     @Override
     PingPartiallySelected with(WorldMap.Region region) {
-      return new PingPartiallySelected(region, replyTo);
+      return new PingPartiallySelected(region, deadline, delayed, replyTo);
+    }
+
+    PingFullySelected asPingFullySelected(WorldMap.Region region) {
+      return new PingFullySelected(region, deadline, delayed, replyTo);
     }
   }
 
   public static final class PingFullySelected extends SelectionCommand {
-    public PingFullySelected(@JsonProperty("region") WorldMap.Region region, @JsonProperty("replyTo") ActorRef<Command> replyTo) {
-      super(Action.ping, region, replyTo);
+    @JsonCreator
+    public PingFullySelected(WorldMap.Region region, Instant deadline, boolean delayed, ActorRef<Command> replyTo) {
+      super(Action.ping, region, deadline, delayed, replyTo);
     }
 
     @Override
     PingFullySelected with(WorldMap.Region region) {
-      return new PingFullySelected(region, replyTo);
+      return new PingFullySelected(region, deadline, delayed, replyTo);
+    }
+
+    SelectionCreate asSelectionCreate(WorldMap.Region region) {
+      return new SelectionCreate(region, deadline, delayed, replyTo);
     }
   }
 

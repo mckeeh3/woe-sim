@@ -22,6 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -103,7 +104,7 @@ public class HttpServerTest {
   @Test
   public void thatSelectionCreatePostAndReplyAreSerializable() {
     WorldMap.Region selection = regionForZoom0();
-    Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
+    Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, Instant.now(), false, null);
 
     HttpResponse httpResponse = Http.get(testKit.system().classicSystem())
         .singleRequest(HttpRequest.POST("http://localhost:28080/selection-create")

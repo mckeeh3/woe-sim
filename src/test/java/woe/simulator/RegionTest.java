@@ -1,6 +1,8 @@
 package woe.simulator;
 
 import akka.actor.ActorSystem;
+import akka.actor.testkit.typed.javadsl.ActorTestKit;
+import akka.actor.testkit.typed.javadsl.SerializationTestKit;
 import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
 import akka.actor.testkit.typed.javadsl.TestProbe;
 import akka.cluster.Cluster;
@@ -15,8 +17,6 @@ import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.server.Route;
 import akka.stream.Materializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.BeforeClass;
@@ -24,8 +24,8 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +35,6 @@ import java.util.stream.IntStream;
 
 import static akka.http.javadsl.server.Directives.*;
 import static woe.simulator.WorldMap.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class RegionTest {
   private static ClusterSharding clusterSharding;
@@ -81,7 +80,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(1, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom18Selection");
@@ -99,7 +98,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(4, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom17Selection");
@@ -117,7 +116,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(16, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom16Selection");
@@ -134,7 +133,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(64, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom15Selection");
@@ -152,7 +151,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(1024, Duration.ofSeconds(30));
     testKit.system().log().debug("exit createZoom15Selection");
@@ -170,7 +169,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(65536, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom10Selection");
@@ -188,7 +187,7 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(262144, Duration.ofSeconds(60));
     testKit.system().log().debug("exit createZoom09Selection");
@@ -206,36 +205,27 @@ public class RegionTest {
 
     // London across Westminster Bridge at Park Plaza Hotel
     WorldMap.Region region = regionAtLatLng(zoom, new LatLng(51.50079211, -0.11682093));
-    entityRef.tell(new Region.SelectionCreate(region, probe.ref()));
+    entityRef.tell(new Region.SelectionCreate(region, Instant.now(), false, probe.ref()));
 
     probe.receiveSeveralMessages(1048576, Duration.ofMinutes(10));
     testKit.system().log().debug("exit createZoom08Selection");
   }
 
   @Test
-  public void serializeDeserializeSelectionCommands() throws IOException {
-    CBORFactory cborFactory = new CBORFactory();
-    ObjectMapper objectMapper = new ObjectMapper(cborFactory);
+  public void serializeDeserializeSelectionCommands() {
+    final SerializationTestKit serializationTestKit = ActorTestKit.create(testKit.system()).serializationTestKit();
 
-    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(regionForZoom0(), null);
-    final byte[] bytesSelectionCreate = objectMapper.writeValueAsBytes(selectionCreate);
-    final Region.SelectionCreate selectionCreate1 = objectMapper.readValue(bytesSelectionCreate, Region.SelectionCreate.class);
-    assertEquals(selectionCreate, selectionCreate1);
+    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(regionForZoom0(), Instant.now(), false, null);
+    serializationTestKit.verifySerialization(selectionCreate, true);
 
-    final Region.SelectionDelete selectionDelete = new Region.SelectionDelete(regionForZoom0(), null);
-    final byte[] bytesSelectionDelete = objectMapper.writeValueAsBytes(selectionDelete);
-    final Region.SelectionDelete selectionDelete1 = objectMapper.readValue(bytesSelectionDelete, Region.SelectionDelete.class);
-    assertEquals(selectionDelete, selectionDelete1);
+    final Region.SelectionDelete selectionDelete = new Region.SelectionDelete(regionForZoom0(), Instant.now(), false, null);
+    serializationTestKit.verifySerialization(selectionDelete, true);
 
-    final Region.SelectionHappy selectionHappy = new Region.SelectionHappy(regionForZoom0(), null);
-    final byte[] bytesSelectionHappy = objectMapper.writeValueAsBytes(selectionHappy);
-    final Region.SelectionHappy selectionHappy1 = objectMapper.readValue(bytesSelectionHappy, Region.SelectionHappy.class);
-    assertEquals(selectionHappy, selectionHappy1);
+    final Region.SelectionHappy selectionHappy = new Region.SelectionHappy(regionForZoom0(), Instant.now(), false, null);
+    serializationTestKit.verifySerialization(selectionHappy, true);
 
-    final Region.SelectionSad selectionSad = new Region.SelectionSad(regionForZoom0(), null);
-    final byte[] bytesSelectionSad = objectMapper.writeValueAsBytes(selectionSad);
-    final Region.SelectionSad selectionSad1 = objectMapper.readValue(bytesSelectionSad, Region.SelectionSad.class);
-    assertEquals(selectionSad, selectionSad1);
+    final Region.SelectionSad selectionSad = new Region.SelectionSad(regionForZoom0(), Instant.now(), false, null);
+    serializationTestKit.verifySerialization(selectionSad, true);
   }
 
   private static WorldMap.Region regionAtLatLng(int zoom, WorldMap.LatLng latLng) {
@@ -280,7 +270,7 @@ public class RegionTest {
         path("telemetry", () -> concat(
             get(() -> {
               WorldMap.Region selection = regionForZoom0();
-              Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
+              Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, Instant.now(), false, null);
               return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
             }),
             post(() -> entity(

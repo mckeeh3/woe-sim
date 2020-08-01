@@ -14,11 +14,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 
 import static akka.http.javadsl.server.Directives.*;
-import static woe.simulator.WorldMap.entityIdOf;
-import static woe.simulator.WorldMap.regionForZoom0;
+import static woe.simulator.WorldMap.*;
 
 class HttpServer {
   private final ActorSystem<?> actorSystem;
@@ -71,10 +72,20 @@ class HttpServer {
   }
 
   private void submit(SelectionActionRequest selectionActionRequest) {
-    Region.SelectionCommand selectionCommand = selectionActionRequest.asSelectionAction(replyTo);
+    Region.SelectionCommand selectionCommand = selectionActionRequest.asSelectionCommand(replyTo);
     String entityId = entityIdOf(regionForZoom0());
     EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
     entityRef.tell(selectionCommand);
+  }
+
+  static Duration selectionProcessingDuration(SelectionActionRequest selectionActionRequest) {
+    final int rate = selectionActionRequest.rate;
+    final int deviceCount = devicesWithin(selectionActionRequest.zoom);
+    return Duration.ofSeconds(deviceCount / rate);
+  }
+
+  static Instant selectionProcessingDeadline(SelectionActionRequest selectionActionRequest) {
+    return Instant.now().plus(selectionProcessingDuration(selectionActionRequest));
   }
 
   public static class SelectionActionRequest implements CborSerializable {
@@ -108,17 +119,20 @@ class HttpServer {
       this(action, rate, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
     }
 
-    Region.SelectionCommand asSelectionAction(ActorRef<Region.Command> replyTo) {
+    Region.SelectionCommand asSelectionCommand(ActorRef<Region.Command> replyTo) {
       WorldMap.Region region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
+      final Instant deadline = selectionProcessingDeadline(this);
+      final boolean delayed = false;
+
       switch (action) {
         case "create":
-          return new Region.SelectionCreate(region, replyTo);
+          return new Region.SelectionCreate(region, deadline, delayed, replyTo);
         case "delete":
-          return new Region.SelectionDelete(region, replyTo);
+          return new Region.SelectionDelete(region, deadline, delayed, replyTo);
         case "happy":
-          return new Region.SelectionHappy(region, replyTo);
+          return new Region.SelectionHappy(region, deadline, delayed, replyTo);
         case "sad":
-          return new Region.SelectionSad(region, replyTo);
+          return new Region.SelectionSad(region, deadline, delayed, replyTo);
         default:
           throw new IllegalArgumentException(String.format("Action '%s' illegal, must be one of: 'create', 'delete', 'happy', or 'sad'.", action));
       }

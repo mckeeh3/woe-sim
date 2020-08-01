@@ -454,6 +454,31 @@ public class WorldMapTest {
     assertEquals(count, regionCountForSelectionStack(3));
   }
 
+  @Test
+  public void regionCountForSelectionAtZoomWorks() {
+    assertEquals(4, regionCountForSelectionAtZoom(17, 18));
+    assertEquals(1, regionCountForSelectionAtZoom(17, 17));
+
+    assertEquals(16, regionCountForSelectionAtZoom(16, 18));
+    assertEquals(4, regionCountForSelectionAtZoom(16, 17));
+    assertEquals(1, regionCountForSelectionAtZoom(16, 16));
+    assertEquals(1, regionCountForSelectionAtZoom(16, 15));
+    assertEquals(1, regionCountForSelectionAtZoom(16, 3));
+
+    assertEquals(devicesWithin(18 - (18 - 10)), regionCountForSelectionAtZoom(10, 18));
+    assertEquals(devicesWithin(18 - (17 - 10)), regionCountForSelectionAtZoom(10, 17));
+    assertEquals(devicesWithin(18 - (11 - 10)), regionCountForSelectionAtZoom(10, 11));
+
+    assertEquals(devicesWithin(18 - (18 - 6)), regionCountForSelectionAtZoom(6, 18));
+    assertEquals(devicesWithin(18 - (7 - 6)), regionCountForSelectionAtZoom(6, 7));
+  }
+
+  @Test
+  public void percentForSelectionAtZoomWorks() {
+    System.out.printf("Selection zoom %d, zoom %d, percent %1.3f%n", 16, 18, percentForSelectionAtZoom(16, 18));
+    System.out.printf("Selection zoom %d, zoom %d, percent %1.3f%n", 8, 17, percentForSelectionAtZoom(8, 17));
+  }
+
   // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.
   @Ignore
   @Test

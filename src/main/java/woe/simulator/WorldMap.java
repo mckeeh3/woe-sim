@@ -77,16 +77,17 @@ interface WorldMap {
   }
 
   static int regionCountForSelectionStack(int selectionZoom) {
-    int count = 0;
-    for (int i = 0; i < 19; i++) {
-      int zoom = selectionZoom + i;
-      count += zoom > 18 ? 1 : devicesWithin(zoom);
-    }
-    return count;
+    return IntStream.rangeClosed(0, 18).map(i -> selectionZoom + i).reduce(0, (sum, zoom) -> sum += zoom > 18 ? 1 : devicesWithin(zoom));
   }
 
-  static int regionCountForSelectionAtZoom(int selectionZoom, int countZoom) {
-    return 0;
+  static int regionCountForSelectionAtZoom(int zoomSelection, int zoomCount) {
+    return zoomCount < zoomSelection ? 1 : devicesWithin(18 - (zoomCount - zoomSelection));
+  }
+
+  static double percentForSelectionAtZoom(int zoomSelection, int zoomCount) {
+    final double regionsForStack = regionCountForSelectionStack(zoomSelection);
+    final double regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
+    return regionsForZoom / regionsForStack;
   }
 
   private static List<Region> subRegionsForZoom0() {

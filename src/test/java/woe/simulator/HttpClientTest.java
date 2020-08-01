@@ -14,6 +14,7 @@ import com.typesafe.config.ConfigFactory;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
@@ -39,7 +40,7 @@ public class HttpClientTest {
     final HttpClient httpClient = new HttpClient(testKit.system(), "http://localhost:28080/telemetry");
     // London across Westminster Bridge at Park Plaza Hotel
     final WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
-    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(region, null);
+    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(region, Instant.now(), false, null);
     final HttpClient.TelemetryResponse telemetryResponse = httpClient.post(selectionCreate)
         .toCompletableFuture().join();
 
@@ -65,7 +66,7 @@ public class HttpClientTest {
         path("telemetry", () -> concat(
             get(() -> {
               WorldMap.Region selection = regionForZoom0();
-              Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
+              Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, Instant.now(), false, null);
               return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
             }),
             post(() -> entity(

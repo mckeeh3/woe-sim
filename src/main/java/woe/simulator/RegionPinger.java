@@ -9,6 +9,7 @@ import akka.cluster.typed.ClusterSingleton;
 import akka.cluster.typed.SingletonActor;
 
 import java.time.Duration;
+import java.time.Instant;
 
 import static woe.simulator.WorldMap.entityIdOf;
 import static woe.simulator.WorldMap.regionForZoom0;
@@ -45,7 +46,7 @@ class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
     final WorldMap.Region region = regionForZoom0();
     final String entityId = entityIdOf(region);
     final EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
-    entityRef.tell(new Region.PingPartiallySelected(region, null));
+    entityRef.tell(new Region.PingPartiallySelected(region, Instant.now(), false, null));
     return this;
   }
 

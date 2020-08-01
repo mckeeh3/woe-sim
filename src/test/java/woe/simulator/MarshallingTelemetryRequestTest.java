@@ -13,23 +13,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Test;
 
+import java.time.Instant;
+
 import static woe.simulator.WorldMap.regionForZoom0;
 
-public class MarshallingSelectionCreateTest extends JUnitRouteTest {
+public class MarshallingTelemetryRequestTest extends JUnitRouteTest {
   @Test
   public void testEntitySelectionCreate() {
     final WorldMap.Region selection = regionForZoom0();
-    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, null);
-    final Unmarshaller<HttpEntity, Region.SelectionCreate> unmarshaller = Jackson.unmarshaller(Region.SelectionCreate.class);
+    final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, Instant.ofEpochMilli(0), false, null);
+    final HttpClient.TelemetryRequest telemetryRequest = new HttpClient.TelemetryRequest(selectionCreate.action.name(), selectionCreate.region);
+    final Unmarshaller<HttpEntity, HttpClient.TelemetryRequest> unmarshaller = Jackson.unmarshaller(HttpClient.TelemetryRequest.class);
     final Route route = entity(unmarshaller, sc ->
         complete(sc.toString()));
 
     testRoute(route).run(
         HttpRequest.POST("/")
             .withEntity(
-                HttpEntities.create(ContentTypes.APPLICATION_JSON, toJson(selectionCreate))
+                HttpEntities.create(ContentTypes.APPLICATION_JSON, toJson(telemetryRequest))
             )
-    ).assertEntity("SelectionCreate[create, Region[zoom 0, topLeft LatLng[lat 90.0000000000000, lng -180.0000000000000], botRight LatLng[lat -90.0000000000000, lng 180.0000000000000]]]");
+    ).assertEntity("TelemetryRequest[create, 0, 90.000000000, -180.000000000, -90.000000000, 180.000000000]");
   }
 
   private static String toJson(Object pojo) {
