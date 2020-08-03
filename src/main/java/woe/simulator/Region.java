@@ -176,8 +176,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private void notifyTwin(State state, SelectionCommand selectionCommand) {
-    log().info("To twin {}", selectionCommand);
-    httpClient.post(selectionCommand.with(state.region))
+    final SelectionCommand selectionCommandNotify = selectionCommand.with(state.region);
+    log().info("To twin {}", selectionCommandNotify);
+    httpClient.post(selectionCommandNotify)
         .thenAccept(t -> {
           if (t.httpStatusCode != 200) {
             log().warn("Telemetry request failed {}", t);
