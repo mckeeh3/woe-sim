@@ -4,6 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.javadsl.TimerScheduler;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
@@ -13,6 +14,7 @@ import akka.persistence.typed.javadsl.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -21,20 +23,23 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   final String entityId;
   final WorldMap.Region region;
   final ClusterSharding clusterSharding;
+  final TimerScheduler<Command> timerScheduler;
   final ActorContext<Command> actorContext;
   final HttpClient httpClient;
   static final EntityTypeKey<Command> entityTypeKey = EntityTypeKey.create(Command.class, Region.class.getSimpleName());
 
   static Behavior<Command> create(String entityId, ClusterSharding clusterSharding) {
-    return Behaviors.setup(actorContext -> new Region(entityId, clusterSharding, actorContext));
+    return Behaviors.setup(actorContext ->
+        Behaviors.withTimers(timer -> new Region(entityId, clusterSharding, actorContext, timer)));
   }
 
-  private Region(String entityId, ClusterSharding clusterSharding, ActorContext<Command> actorContext) {
+  private Region(String entityId, ClusterSharding clusterSharding, ActorContext<Command> actorContext, TimerScheduler<Command> timerScheduler) {
     super(PersistenceId.of(entityTypeKey.name(), entityId));
     this.entityId = entityId;
     this.region = WorldMap.regionForEntityId(entityId);
     this.clusterSharding = clusterSharding;
     this.actorContext = actorContext;
+    this.timerScheduler = timerScheduler;
     this.httpClient = new HttpClient(actorContext.getSystem());
   }
 
@@ -50,8 +55,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         .onCommand(SelectionDelete.class, this::onSelectionDelete)
         .onCommand(SelectionHappy.class, this::onSelectionHappyOrSad)
         .onCommand(SelectionSad.class, this::onSelectionHappyOrSad)
-        .onCommand(PingPartiallySelected.class, this::pingPartiallySelected)
-        .onCommand(PingFullySelected.class, this::pingFullySelected)
+        .onCommand(PingPartiallySelected.class, this::onPingPartiallySelected)
+        .onCommand(PingFullySelected.class, this::onPingFullySelected)
         .build();
   }
 
@@ -79,11 +84,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         } else {
           forwardSelectionToSubRegions(state, selectionCreate);
         }
-        return Effect().none();
       }
-    } else {
-      return Effect().none();
     }
+    return Effect().none();
   }
 
   private Effect<Event, State> onSelectionDelete(State state, SelectionDelete selectionDelete) {
@@ -98,11 +101,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         } else {
           forwardSelectionToSubRegions(state, selectionDelete);
         }
-        return Effect().none();
       }
-    } else {
-      return Effect().none();
     }
+    return Effect().none();
   }
 
   private Effect<Event, State> onSelectionHappyOrSad(State state, SelectionCommand selectionHappyOrSad) {
@@ -118,7 +119,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     return Effect().none();
   }
 
-  private Effect<Event, State> pingPartiallySelected(State state, PingPartiallySelected pingPartiallySelected) {
+  private Effect<Event, State> onPingPartiallySelected(State state, PingPartiallySelected pingPartiallySelected) {
     if (state.doesCommandRegionOverlapStateRegion(pingPartiallySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
@@ -133,7 +134,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     return Effect().none();
   }
 
-  private Effect<Event, State> pingFullySelected(State state, PingFullySelected pingFullySelected) {
+  private Effect<Event, State> onPingFullySelected(State state, PingFullySelected pingFullySelected) {
     if (state.doesCommandRegionOverlapStateRegion(pingFullySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
@@ -146,6 +147,15 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       }
     }
     return Effect().none();
+  }
+
+  private boolean delayed(SelectionCommand selectionCommand) {
+    if (selectionCommand.delayed) {
+      return false;
+    } else {
+      final Duration untilDeadline = Duration.between(selectionCommand.deadline, Instant.now());
+    }
+    return false;
   }
 
   private Effect<Event, State> acceptSelection(SelectionCommand selectionCommand) {
@@ -166,6 +176,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private void notifyTwin(State state, SelectionCommand selectionCommand) {
+    log().info("To twin {}", selectionCommand);
     httpClient.post(selectionCommand.with(state.region))
         .thenAccept(t -> {
           if (t.httpStatusCode != 200) {

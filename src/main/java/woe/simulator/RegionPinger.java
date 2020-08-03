@@ -26,7 +26,7 @@ class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
 
   static Behavior<?> create(Duration interval) {
     return Behaviors.<Command>setup(actorContext ->
-        Behaviors.<Command>withTimers(timer -> new RegionPinger(actorContext, interval, timer)));
+        Behaviors.withTimers(timer -> new RegionPinger(actorContext, interval, timer)));
   }
 
   private RegionPinger(ActorContext<Command> actorContext, Duration interval, TimerScheduler<Command> timerScheduler) {
