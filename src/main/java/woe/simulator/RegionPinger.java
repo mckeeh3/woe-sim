@@ -16,6 +16,7 @@ import static woe.simulator.WorldMap.regionForZoom0;
 
 class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
   private final ClusterSharding clusterSharding;
+  private final Duration interval;
 
   interface Command {
   }
@@ -32,6 +33,7 @@ class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
   private RegionPinger(ActorContext<Command> actorContext, Duration interval, TimerScheduler<Command> timerScheduler) {
     super(actorContext);
     clusterSharding = ClusterSharding.get(actorContext.getSystem());
+    this.interval = interval;
     timerScheduler.startTimerWithFixedDelay(Tick.ticktock, interval);
   }
 
@@ -46,7 +48,8 @@ class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
     final WorldMap.Region region = regionForZoom0();
     final String entityId = entityIdOf(region);
     final EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
-    entityRef.tell(new Region.PingPartiallySelected(region, Instant.now(), false, null));
+    final Instant deadline = Instant.now().plus(interval);
+    entityRef.tell(new Region.PingPartiallySelected(region, deadline, false, null));
     return this;
   }
 

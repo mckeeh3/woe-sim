@@ -59,8 +59,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
-            - name: cassandra_host_port_1
-              value: "yb-tservers.yugabyte-db.svc.cluster.local:9042"
+            - name: cassandra_host_port
+              value: "cassandra.us-east-1.amazonaws.com:9142"
             - name: woe_simulator_http_server_host
               value: "woe-sim-service.woe-sim-1.svc.cluster.local"
             - name: woe_simulator_http_server_port
@@ -69,6 +69,10 @@ spec:
               value: "woe-twin-service.woe-twin-1.svc.cluster.local"
             - name: woe_twin_http_server_port
               value: "8080"
+            - name: AWS_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_ACCESS_KEY } }
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_SECRET_ACCESS_KEY } }
 
 ---
 kind: Role

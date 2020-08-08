@@ -11,6 +11,27 @@ TODO
 The `kubectl` CLI provides a nice Kubectl Autocomplete feature for `bash` and `zsh`.
 See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-autocomplete) for instructions.
 
+Also, consider installing [`kubectx`](https://github.com/ahmetb/kubectx), which also includes `kubens`.
+Mac:
+~~~bash
+$ brew install kubectx
+~~~
+Arch Linux:
+~~~bash
+$ yay kubectx
+~~~
+
+#### Enable Access to Google Kubernetes Engine - GKE
+
+TODO
+
+#### Enable Access to Amazon Elastic Kubernetes Service - EKS
+
+Go to [Getting started with eksctl](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html)
+for directions on setting up EKS and Kubernetes CLI tools.
+
+See AWS EKS sections below for specific instructions on setting up Cassandra and deploying the woe-sim microserivce to an EKS cluster.
+
 #### Yugabyte on Kubernetes or MiniKube
 
 Follow the documentation for installing Kubernetes,
@@ -67,7 +88,7 @@ NOTES:
   kubectl delete pvc --namespace yugabyte-db -l app=yb-tserver
 ~~~
 
-#### Create Cassandra Tables
+#### Create Cassandra Tables - Yugabyte
 
 Try the following commands to verify access to Cassandra CQL and PostgreSQL
 CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
@@ -85,19 +106,6 @@ Use HELP for help.
 ycqlsh> quit
 ~~~
 
-PostgreSQL shell
-~~~bash
-$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh -h yb-tserver-0  --echo-queries
-~~~
-~~~
-Defaulting container name to yb-tserver.
-Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
-ysqlsh (11.2-YB-2.2.0.0-b0)
-Type "help" for help.
-
-yugabyte=# quit
-~~~
-
 ##### Copy CQL DDL commands to the Yugabyte server
 
 From the woe-sim project directory.
@@ -107,8 +115,8 @@ $ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte
 Defaulting container name to yb-tserver.
 ~~~
 
-##### Create the Cassandra Tables
-Cassandra
+##### Create the CQL Tables
+
 ~~~bash
 $ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
 ~~~
@@ -137,6 +145,10 @@ messages   all_persistence_ids  metadata
 ~~~
 ycqlsh:woe_simulator>quit
 ~~~
+
+### Create AWS Keyspaces Cassandra Tables
+
+
 
 ### Build and Deploy to MiniKube
 
@@ -193,7 +205,7 @@ woe-sim:latest
 
 Create the Kubernetes namespace. The namespace only needs to be created once.
 ~~~bash
-$ kubectl apply -f kubernetes/namespace.json     
+$ kubectl create namespace woe-sim-1
 ~~~
 ~~~
 namespace/woe-sim-1 created
@@ -514,4 +526,109 @@ $ kubectl get services woe-sim-service
 ~~~
 NAME              TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                                        AGE
 woe-sim-service   LoadBalancer   10.89.3.57   35.232.168.63   2552:31693/TCP,8558:31376/TCP,8080:31238/TCP   5m21s
+~~~
+
+### Deploy to AWS GKE
+
+At this point a GKE cluster has been created and is ready for deployment. See section *Enable Access to Amazon Elastic Kubernetes Service - EKS* above on how to get started.
+
+Ensure that you have access to the GKE cluster.
+~~~bash
+$ kubectl get svc
+~~~
+~~~
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   8d
+~~~
+
+#### Create Keyspaces Cassandra tables
+
+Go to the [Akazon Keyspaces](https://console.aws.amazon.com/keyspaces/home?region=us-east-1#keyspaces) and click `Create keyspace` at top right.
+
+Keyspace name: `woe_simulator` then click `Create keyspace`.
+
+Use the [CQL editor](https://console.aws.amazon.com/keyspaces/home?region=us-east-1#cql-editor)
+or follow the steps for installing the `cqlsh` at
+[Using cqlsh to connect to Amazon Keyspaces (for Apache Cassandra)](https://docs.aws.amazon.com/keyspaces/latest/devguide/programmatic.cqlsh.html).
+
+The DDL file used to create the tables is located in the woe-twin project at `src/main/resources/akka-persistence-journal-create-sim.cql`.
+
+#### Adjust Configuration Settings
+
+In the woe-sim project, edit the file `akka-cluster-eks.yml`. In the `env` section, look for the environment variable name `cassandra_host_port`.
+Adjust the value of the Keyspaces host and port as needed.
+
+Keyspaces requires that the `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY` environment variables are set in the container. This requires that the service
+namespace is created and these two key/values are defined using [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/).
+
+Create the Kubernetes namespace. The namespace only needs to be created once.
+~~~bash
+$ kubectl create namespace woe-sim-1
+~~~
+~~~
+namespace/woe-sim-1 created
+~~~
+
+Set this namespace as the default for subsequent `kubectl` commands.
+~~~bash
+$ kubectl config set-context --current --namespace=woe-sim-1
+~~~
+~~~
+Context "minikube" modified.
+~~~
+
+Once the namespace is defined and set as the current context, create the secrets.
+
+~~~bash
+$ kubectl create secret generic aws-access-key --from-literal=AWS_ACCESS_KEY='ZXCV.....' --from-literal=AWS_SECRET_ACCESS_KEY='VCXZ....'
+~~~
+~~~
+secret/aws-access-key created
+~~~
+
+#### Build and Deploy to the EKS Cluster
+
+Build the project, which will create a new Docker image.
+~~~bash
+$ mvn clean package docker:build
+~~~
+~~~
+...
+
+[INFO]
+[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-sim ---
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
+[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 405 milliseconds
+[INFO] DOCKER> [woe-sim:latest]: Built image sha256:ebe14
+[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20200617-143425.6247cf9
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:30 min
+[INFO] Finished at: 2020-06-19T09:25:15-04:00
+[INFO] ------------------------------------------------------------------------
+~~~
+
+Tag the Docker image using a Docker Hub account. Login to the Docker Hub as needed.
+~~~bash
+$ docker login -u mckeeh3 -p ******** # as needed
+~~~
+
+~~~bash
+$ docker tag woe-sim mckeeh3/woe-sim:latest
+~~~
+
+Push the Docker image to Docker Hub.
+~~~bash
+$ docker push mckeeh3/woe-sim:latest
+~~~
+
+Deploy the service to the Kubernetes cluster.
+~~~bash
+$ kubectl apply -f kubernetes/akka-cluster-eks.yml
+~~~
+
+~~~bash
+$ kubectl apply -f kubernetes/akka-cluster-eks.yml
 ~~~

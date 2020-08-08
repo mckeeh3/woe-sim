@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Objects;
 
@@ -73,6 +74,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionCreate(State state, SelectionCreate selectionCreate) {
+    if (rateDelayed(state, selectionCreate)) {
+      return Effect().none();
+    }
     if (state.doesCommandRegionOverlapStateRegion(selectionCreate)) {
       if (state.isPartialSelection(selectionCreate) && state.isNotSelected()) {
         return acceptSelection(selectionCreate);
@@ -90,6 +94,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionDelete(State state, SelectionDelete selectionDelete) {
+    if (rateDelayed(state, selectionDelete)) {
+      Effect().none();
+    }
     if (state.doesCommandRegionOverlapStateRegion(selectionDelete)) {
       if (state.isFullySelected()) {
         return acceptSelection(selectionDelete);
@@ -107,6 +114,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onSelectionHappyOrSad(State state, SelectionCommand selectionHappyOrSad) {
+    if (rateDelayed(state, selectionHappyOrSad)) {
+      return Effect().none();
+    }
     if (state.doesCommandRegionOverlapStateRegion(selectionHappyOrSad)) {
       if (state.isPartiallySelected() || state.isFullySelected()) {
         if (state.region.isDevice()) {
@@ -120,6 +130,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onPingPartiallySelected(State state, PingPartiallySelected pingPartiallySelected) {
+    if (rateDelayed(state, pingPartiallySelected)) {
+      return Effect().none();
+    }
     if (state.doesCommandRegionOverlapStateRegion(pingPartiallySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
@@ -135,6 +148,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> onPingFullySelected(State state, PingFullySelected pingFullySelected) {
+    if (rateDelayed(state, pingFullySelected)) {
+      return Effect().none();
+    }
     if (state.doesCommandRegionOverlapStateRegion(pingFullySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
@@ -149,11 +165,15 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     return Effect().none();
   }
 
-  private boolean delayed(SelectionCommand selectionCommand) {
+  private boolean rateDelayed(State state, SelectionCommand selectionCommand) {
     if (selectionCommand.delayed) {
       return false;
+    } else if (state.delayed) {
+      return true;
     } else {
       final Duration untilDeadline = Duration.between(selectionCommand.deadline, Instant.now());
+      final double untilDeadlinePercent = WorldMap.percentForSelectionAtZoom(selectionCommand.region.zoom, state.region.zoom);
+      final double v = untilDeadline.toMillis() * untilDeadlinePercent;
     }
     return false;
   }
@@ -338,6 +358,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   static final class State implements CborSerializable {
     final WorldMap.Region region;
     Status status;
+    boolean delayed;
 
     State(WorldMap.Region region) {
       this.region = region;

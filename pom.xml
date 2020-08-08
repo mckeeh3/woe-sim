@@ -13,7 +13,7 @@
         <java.version>11</java.version>
         <scala.version>2.13</scala.version>
         <akka.version>2.6.8</akka.version>
-        <akka.http.version>10.2.0-RC2</akka.http.version>
+        <akka.http.version>10.2.0</akka.http.version>
         <akka.management.version>1.0.8</akka.management.version>
         <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
         <yugabyte.driver.version>3.8.0-yb-5</yugabyte.driver.version>
@@ -65,6 +65,11 @@
             <groupId>com.yugabyte</groupId>
             <artifactId>cassandra-driver-core</artifactId>
             <version>${yugabyte.driver.version}</version>
+        </dependency-->
+        <!--dependency>
+            <groupId>software.aws.mcs</groupId>
+            <artifactId>aws-sigv4-auth-cassandra-java-driver-plugin</artifactId>
+            <version>4.0.2</version>
         </dependency-->
 
         <!-- Akka Cluster Bootstrap -->

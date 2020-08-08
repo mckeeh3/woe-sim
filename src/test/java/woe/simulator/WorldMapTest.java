@@ -4,6 +4,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -473,10 +474,33 @@ public class WorldMapTest {
     assertEquals(devicesWithin(18 - (7 - 6)), regionCountForSelectionAtZoom(6, 7));
   }
 
+  @Ignore
   @Test
   public void percentForSelectionAtZoomWorks() {
     System.out.printf("Selection zoom %d, zoom %d, percent %1.3f%n", 16, 18, percentForSelectionAtZoom(16, 18));
     System.out.printf("Selection zoom %d, zoom %d, percent %1.3f%n", 8, 17, percentForSelectionAtZoom(8, 17));
+    final Instant deadline = Instant.ofEpochMilli(2000);
+    final Duration between = Duration.between(Instant.ofEpochMilli(1000), deadline);
+    final double percent = percentForSelectionAtZoom(3, 18);
+    final double delayMs = percent * between.toMillis();
+    final double delayPercent = Math.random();
+    final Duration delay = Duration.ofMillis((long) (delayMs * delayPercent));
+    System.out.printf("delay ms %1.3f, %s%n", delayMs, delay);
+  }
+
+  @Ignore
+  @Test
+  public void percentForSelections() {
+    IntStream.rangeClosed(3, 18).forEach(zoomSelection -> {
+      IntStream.rangeClosed(3, 18).forEach(zoomCount -> {
+        final double regionsForStack = regionCountForSelectionStack(zoomSelection);
+        final double regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
+        System.out.printf("%2d, %2d, %1.9f, %,13.0f, %,13.0f%n", zoomSelection, zoomCount, percentForSelectionAtZoom(zoomSelection, zoomCount), regionsForZoom, regionsForStack);
+      });
+      // Add 3 to total for zooms 0, 1, 2
+      final int total = 3 + IntStream.rangeClosed(3, 18).reduce(0, (t, z) -> t + regionCountForSelectionAtZoom(zoomSelection, z));
+      System.out.printf("%,34d->=============%n%n", total);
+    });
   }
 
   // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.
