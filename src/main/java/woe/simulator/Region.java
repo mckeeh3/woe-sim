@@ -213,7 +213,9 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   private void notifyTwin(State state, SelectionCommand selectionCommand) {
     final SelectionCommand selectionCommandNotify = selectionCommand.with(state.region);
-    log().info("To twin {}", selectionCommandNotify);
+    if (!(selectionCommand instanceof PingFullySelected) && !(selectionCommand instanceof PingPartiallySelected)) {
+      log().info("To twin {}", selectionCommandNotify);
+    }
     httpClient.post(selectionCommandNotify)
         .thenAccept(t -> {
           if (t.httpStatusCode != 200) {
