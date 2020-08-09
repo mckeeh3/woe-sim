@@ -474,6 +474,20 @@ public class WorldMapTest {
     assertEquals(devicesWithin(18 - (7 - 6)), regionCountForSelectionAtZoom(6, 7));
   }
 
+  @Test
+  public void rateDelayed() {
+    final WorldMap.Region regionSelection = regionAtLatLng(10, topLeft(50, 1));
+    final WorldMap.Region regionState = regionAtLatLng(17, topLeft(50, 1));
+    final Region.State state = new Region.State(regionState);
+    final Instant deadline = Instant.ofEpochMilli(System.currentTimeMillis() + 1000);
+    final Region.SelectionCommand selectionCommand = new Region.SelectionCreate(regionSelection, deadline, false, null);
+    final Duration untilDeadline = Duration.between(Instant.now(), selectionCommand.deadline);
+    final double untilDeadlinePercent = percentForSelectionAtZoom(selectionCommand.region.zoom, state.region.zoom);
+    final double randomPercent = untilDeadlinePercent * Math.random();
+    final Duration delay = Duration.ofMillis((long) (untilDeadline.toMillis() * randomPercent));
+    assertTrue(delay.toMillis() > 0);
+  }
+
   @Ignore
   @Test
   public void percentForSelectionAtZoomWorks() {

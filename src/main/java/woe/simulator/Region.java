@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Objects;
 
@@ -166,16 +165,33 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private boolean rateDelayed(State state, SelectionCommand selectionCommand) {
-    if (selectionCommand.delayed) {
+    final int delayMsMin = 5;
+    if (selectionCommand instanceof PingFullySelected || selectionCommand instanceof PingPartiallySelected) {
       return false;
-    } else if (state.delayed) {
-      return true;
-    } else {
-      final Duration untilDeadline = Duration.between(selectionCommand.deadline, Instant.now());
-      final double untilDeadlinePercent = WorldMap.percentForSelectionAtZoom(selectionCommand.region.zoom, state.region.zoom);
-      final double v = untilDeadline.toMillis() * untilDeadlinePercent;
     }
-    return false;
+    if (selectionCommand.delayed) {
+      log().info("rate: delayed command received {}", selectionCommand);
+      state.delayed = false;
+      return false;
+    }
+    if (state.delayed) {
+      log().info("rate: ignore while delayed {}", selectionCommand);
+      return true;
+    }
+    final Duration untilDeadline = Duration.between(Instant.now(), selectionCommand.deadline);
+    if (untilDeadline.toMillis() < delayMsMin) {
+      return false;
+    }
+    final double untilDeadlinePercent = WorldMap.percentForSelectionAtZoom(selectionCommand.region.zoom, state.region.zoom);
+    final double randomPercent = untilDeadlinePercent * Math.random();
+    final Duration delay = Duration.ofMillis((long) (untilDeadline.toMillis() * randomPercent));
+    if (delay.toMillis() < delayMsMin) {
+      return false;
+    }
+    log().info("rate: delay command {} {}", delay, selectionCommand);
+    timerScheduler.startSingleTimer(selectionCommand.asDelayed(true), delay);
+    state.delayed = true;
+    return true;
   }
 
   private Effect<Event, State> acceptSelection(SelectionCommand selectionCommand) {
@@ -210,7 +226,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     List<WorldMap.Region> subRegions = WorldMap.subRegionsFor(state.region);
     subRegions.forEach(region -> {
       EntityRef<Command> entityRef = clusterSharding.entityRefFor(entityTypeKey, WorldMap.entityIdOf(region));
-      entityRef.tell(selectionCommand);
+      entityRef.tell(selectionCommand.asDelayed(false));
     });
   }
 
@@ -237,6 +253,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
 
     abstract SelectionCommand with(WorldMap.Region region);
+
+    abstract SelectionCommand asDelayed(boolean delayed);
 
     @Override
     public boolean equals(Object o) {
@@ -267,7 +285,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       super(Action.create, region, deadline, delayed, replyTo);
     }
 
+    @Override
     SelectionCreate with(WorldMap.Region region) {
+      return new SelectionCreate(region, deadline, delayed, replyTo);
+    }
+
+    @Override
+    SelectionCommand asDelayed(boolean delayed) {
       return new SelectionCreate(region, deadline, delayed, replyTo);
     }
   }
@@ -278,7 +302,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       super(Action.delete, region, deadline, delayed, replyTo);
     }
 
+    @Override
     SelectionDelete with(WorldMap.Region region) {
+      return new SelectionDelete(region, deadline, delayed, replyTo);
+    }
+
+    @Override
+    SelectionCommand asDelayed(boolean delayed) {
       return new SelectionDelete(region, deadline, delayed, replyTo);
     }
   }
@@ -289,7 +319,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       super(Action.happy, region, deadline, delayed, replyTo);
     }
 
+    @Override
     SelectionHappy with(WorldMap.Region region) {
+      return new SelectionHappy(region, deadline, delayed, replyTo);
+    }
+
+    @Override
+    SelectionCommand asDelayed(boolean delayed) {
       return new SelectionHappy(region, deadline, delayed, replyTo);
     }
   }
@@ -300,7 +336,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       super(Action.sad, region, deadline, delayed, replyTo);
     }
 
+    @Override
     SelectionSad with(WorldMap.Region region) {
+      return new SelectionSad(region, deadline, delayed, replyTo);
+    }
+
+    @Override
+    SelectionCommand asDelayed(boolean delayed) {
       return new SelectionSad(region, deadline, delayed, replyTo);
     }
   }
@@ -313,6 +355,11 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
     @Override
     PingPartiallySelected with(WorldMap.Region region) {
+      return new PingPartiallySelected(region, deadline, delayed, replyTo);
+    }
+
+    @Override
+    SelectionCommand asDelayed(boolean delayed) {
       return new PingPartiallySelected(region, deadline, delayed, replyTo);
     }
 
@@ -329,6 +376,11 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
     @Override
     PingFullySelected with(WorldMap.Region region) {
+      return new PingFullySelected(region, deadline, delayed, replyTo);
+    }
+
+    @Override
+    SelectionCommand asDelayed(boolean delayed) {
       return new PingFullySelected(region, deadline, delayed, replyTo);
     }
 
@@ -434,4 +486,3 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     return actorContext.getSystem().log();
   }
 }
-

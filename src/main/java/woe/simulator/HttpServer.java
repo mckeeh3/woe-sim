@@ -36,13 +36,7 @@ class HttpServer {
   }
 
   private void start(String host, int port) {
-//    Materializer materializer = Materializer.matFromSystem(actorSystem);
-
     Http.get(actorSystem).newServerAt(host, port).bind(route());
-//    Http.get(actorSystem.classicSystem())
-//        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer),
-//            ConnectHttp.toHost(host, port), materializer);
-
     log().info("HTTP Server started on {}:{}", host, "" + port);
   }
 
