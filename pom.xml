@@ -66,11 +66,11 @@
             <artifactId>cassandra-driver-core</artifactId>
             <version>${yugabyte.driver.version}</version>
         </dependency-->
-        <!--dependency>
+        <dependency>
             <groupId>software.aws.mcs</groupId>
             <artifactId>aws-sigv4-auth-cassandra-java-driver-plugin</artifactId>
             <version>4.0.2</version>
-        </dependency-->
+        </dependency>
 
         <!-- Akka Cluster Bootstrap -->
         <dependency>
