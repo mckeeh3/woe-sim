@@ -10,9 +10,9 @@ import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.management.cluster.bootstrap.ClusterBootstrap;
 import akka.management.javadsl.AkkaManagement;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,9 +37,10 @@ public class Main {
     startRegionPinger(actorSystem);
   }
 
+  // Copies the truststore file to the local container file system.
+  // Cassandra code does not read from classpath resource.
   private static void awsCassandraTruststoreHack(ActorSystem<?> actorSystem) {
     final String filename = "cassandra-truststore.jks";
-    actorSystem.log().info("***** PWD {}", System.getProperty("user.home"));
     final InputStream inputStream = actorSystem.getClass().getClassLoader().getResourceAsStream(filename);
     final Path target = Paths.get(filename);
     if (inputStream != null) {
