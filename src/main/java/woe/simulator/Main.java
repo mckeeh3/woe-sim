@@ -10,8 +10,13 @@ import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.management.cluster.bootstrap.ClusterBootstrap;
 import akka.management.javadsl.AkkaManagement;
 
+import java.io.*;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 
 public class Main {
@@ -25,10 +30,25 @@ public class Main {
 
   public static void main(String[] args) {
     ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "woe-sim");
+    awsCassandraTruststoreHack(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startRegionClusterSharding(actorSystem);
     startRegionPinger(actorSystem);
+  }
+
+  private static void awsCassandraTruststoreHack(ActorSystem<?> actorSystem) {
+    final String filename = "cassandra-truststore.jks";
+    actorSystem.log().info("***** PWD {}", System.getProperty("user.home"));
+    final InputStream inputStream = actorSystem.getClass().getClassLoader().getResourceAsStream(filename);
+    final Path target = Paths.get(filename);
+    if (inputStream != null) {
+      try {
+        Files.copy(inputStream, target);
+      } catch (IOException e) {
+        actorSystem.log().error(String.format("Unable to copy '%s'", filename), e);
+      }
+    }
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {

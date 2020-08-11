@@ -285,13 +285,6 @@
                                 </entryPoint>
                                 <assembly>
                                     <descriptorRef>artifact-with-dependencies</descriptorRef>
-                                    <!--inline>
-                                        <files>
-                                            <file>
-                                                <source>src/main/resources/cassandra-truststore.jks</source>
-                                            </file>
-                                        </files>
-                                    </inline-->
                                 </assembly>
                             </build>
                         </image>
