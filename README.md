@@ -528,7 +528,7 @@ NAME              TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)           
 woe-sim-service   LoadBalancer   10.89.3.57   35.232.168.63   2552:31693/TCP,8558:31376/TCP,8080:31238/TCP   5m21s
 ~~~
 
-### Deploy to AWS GKE
+### Deploy to AWS EKS
 
 At this point a GKE cluster has been created and is ready for deployment. See section *Enable Access to Amazon Elastic Kubernetes Service - EKS* above on how to get started.
 
@@ -631,4 +631,23 @@ $ kubectl apply -f kubernetes/akka-cluster-eks.yml
 
 ~~~bash
 $ kubectl apply -f kubernetes/akka-cluster-eks.yml
+~~~
+
+Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
+
+~~~bash
+$ kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
+~~~
+~~~
+service/woe-sim-service exposed
+~~~
+
+Next, view to external port assignments.
+
+~~~bash
+$ kubectl get services woe-sim-service
+~~~
+~~~
+NAME              TYPE           CLUSTER-IP      EXTERNAL-IP                                                               PORT(S)                                        AGE
+woe-sim-service   LoadBalancer   10.100.33.178   a459e9519a72a47c8b05dfded0586b4a-1014792675.us-east-1.elb.amazonaws.com   2552:31903/TCP,8558:30619/TCP,8080:30451/TCP   21s
 ~~~
