@@ -1,0 +1,27 @@
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "woe.simulator.grpc";
+option java_outer_classname = "TelemetryServiceProto";
+
+package woe.simulator.grpc;
+
+service TelemetryService {
+  rpc Telemetry (TelemetryRequestGrpc) returns (TelemetryResponseGrpc) {}
+}
+
+message TelemetryRequestGrpc {
+  string action = 1;
+  int32 zoom = 2;
+  double topLeftLat = 3;
+  double topLeftLng = 4;
+  double botRightLat = 5;
+  double botRightLng = 6;
+}
+
+message TelemetryResponseGrpc {
+  string message = 1;
+  int32 httpStatusCode = 2;
+  TelemetryRequestGrpc telemetryRequest = 3;
+}

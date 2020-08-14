@@ -22,8 +22,8 @@ public class MarshallingTelemetryRequestTest extends JUnitRouteTest {
   public void testEntitySelectionCreate() {
     final WorldMap.Region selection = regionForZoom0();
     final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(selection, Instant.ofEpochMilli(0), false, null);
-    final HttpClient.TelemetryRequest telemetryRequest = new HttpClient.TelemetryRequest(selectionCreate.action.name(), selectionCreate.region);
-    final Unmarshaller<HttpEntity, HttpClient.TelemetryRequest> unmarshaller = Jackson.unmarshaller(HttpClient.TelemetryRequest.class);
+    final Telemetry.TelemetryRequest telemetryRequest = new Telemetry.TelemetryRequest(selectionCreate.action.name(), selectionCreate.region);
+    final Unmarshaller<HttpEntity, Telemetry.TelemetryRequest> unmarshaller = Jackson.unmarshaller(Telemetry.TelemetryRequest.class);
     final Route route = entity(unmarshaller, sc ->
         complete(sc.toString()));
 

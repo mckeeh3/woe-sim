@@ -274,10 +274,10 @@ public class RegionTest {
               return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
             }),
             post(() -> entity(
-                Jackson.unmarshaller(HttpClient.TelemetryRequest.class),
+                Jackson.unmarshaller(Telemetry.TelemetryRequest.class),
                 telemetryRequest -> {
                   testKit.system().log().info("*****{}", telemetryRequest);
-                  final HttpClient.TelemetryResponse telemetryResponse = new HttpClient.TelemetryResponse("ok", StatusCodes.CREATED.intValue(), telemetryRequest);
+                  final Telemetry.TelemetryResponse telemetryResponse = new Telemetry.TelemetryResponse("ok", StatusCodes.CREATED.intValue(), telemetryRequest);
                   return respondWithHeader(RawHeader.create("Connection", "close"), () ->
                       complete(StatusCodes.CREATED, telemetryResponse, Jackson.marshaller()));
                 })

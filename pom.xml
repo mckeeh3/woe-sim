@@ -15,7 +15,9 @@
         <akka.version>2.6.8</akka.version>
         <akka.http.version>10.2.0</akka.http.version>
         <akka.management.version>1.0.8</akka.management.version>
-        <akka.persistence.cassandra.version>1.0.0</akka.persistence.cassandra.version>
+        <akka.persistence.cassandra.version>1.0.1</akka.persistence.cassandra.version>
+        <akka.grpc.version>1.0.1</akka.grpc.version>
+        <grpc.version>1.30.2</grpc.version>
         <yugabyte.driver.version>3.8.0-yb-5</yugabyte.driver.version>
         <jackson.version>2.10.3</jackson.version>
         <logback.version>1.2.3</logback.version>
@@ -153,6 +155,24 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-parsing_${scala.version}</artifactId>
             <version>${akka.http.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-http2-support_2.13</artifactId>
+            <version>${akka.http.version}</version>
+        </dependency>
+
+        <!-- Akka gRPC -->
+        <dependency>
+            <groupId>com.lightbend.akka.grpc</groupId>
+            <artifactId>akka-grpc-runtime_${scala.version}</artifactId>
+            <version>${akka.grpc.version}</version>
+        </dependency>
+        <!-- for loading of cert, issue #89 -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-testing</artifactId>
+            <version>${grpc.version}</version>
         </dependency>
 
         <!-- Json -->
@@ -301,6 +321,20 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>com.lightbend.akka.grpc</groupId>
+                <artifactId>akka-grpc-maven-plugin</artifactId>
+                <version>${akka.grpc.version}</version>
+                <!-- Hook the generate goal into the lifecycle,
+                     automatically tied to generate-sources -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

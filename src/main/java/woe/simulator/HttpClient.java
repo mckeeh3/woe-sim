@@ -9,13 +9,13 @@ import akka.http.javadsl.model.HttpEntity;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.stream.Materializer;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.typesafe.config.ConfigException;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -25,7 +25,10 @@ class HttpClient {
   private final String url;
 
   HttpClient(ActorSystem<?> actorSystem) {
-    this(actorSystem, url(actorSystem));
+    this.actorSystem = actorSystem;
+    this.materializer = Materializer.matFromSystem(actorSystem.classicSystem());
+    final Optional<String> urlOpt = url(actorSystem);
+    url = urlOpt.isEmpty() ? null : urlOpt.get();
   }
 
   HttpClient(ActorSystem<?> actorSystem, String url) {
@@ -34,82 +37,34 @@ class HttpClient {
     this.url = url;
   }
 
-  CompletionStage<TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
-    return post(new TelemetryRequest(selectionCommand.action.name(), selectionCommand.region));
+  CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
+    return post(new Telemetry.TelemetryRequest(selectionCommand.action.name(), selectionCommand.region));
   }
 
-  private CompletionStage<TelemetryResponse> post(TelemetryRequest telemetryRequest) {
+  private CompletionStage<Telemetry.TelemetryResponse> post(Telemetry.TelemetryRequest telemetryRequest) {
+    if (url == null) {
+      return CompletableFuture.completedFuture(new Telemetry.TelemetryResponse("no-op", 200, telemetryRequest));
+    }
     return Http.get(actorSystem.classicSystem())
         .singleRequest(HttpRequest.POST(url)
             .withHeaders(Collections.singletonList(RawHeader.create("Connection", "close")))
             .withEntity(toHttpEntity(telemetryRequest)))
         .thenCompose(r -> {
           if (r.status().isSuccess()) {
-            return Jackson.unmarshaller(TelemetryResponse.class).unmarshal(r.entity(), materializer);
+            return Jackson.unmarshaller(Telemetry.TelemetryResponse.class).unmarshal(r.entity(), materializer);
           } else {
-            return CompletableFuture.completedFuture(new TelemetryResponse(r.status().reason(), r.status().intValue(), telemetryRequest));
+            return CompletableFuture.completedFuture(new Telemetry.TelemetryResponse(r.status().reason(), r.status().intValue(), telemetryRequest));
           }
         });
   }
 
-  private static String url(ActorSystem<?> actorSystem) {
-    final String host = actorSystem.settings().config().getString("woe.twin.http.server.host");
-    final int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
-    return String.format("http://%s:%d/telemetry", host, port);
-  }
-
-  public static class TelemetryRequest {
-    public final String action;
-    public final int zoom;
-    public final double topLeftLat;
-    public final double topLeftLng;
-    public final double botRightLat;
-    public final double botRightLng;
-
-    TelemetryRequest(String action, WorldMap.Region region) {
-      this(action, region.zoom, region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
-    }
-
-    @JsonCreator
-    public TelemetryRequest(
-        @JsonProperty("action") String action,
-        @JsonProperty("zoom") int zoom,
-        @JsonProperty("topLeftLat") double topLeftLat,
-        @JsonProperty("topLeftLng") double topLeftLng,
-        @JsonProperty("botRightLat") double botRightLat,
-        @JsonProperty("botRightLng") double botRightLng) {
-      this.action = action;
-      this.zoom = zoom;
-      this.topLeftLat = topLeftLat;
-      this.topLeftLng = topLeftLng;
-      this.botRightLat = botRightLat;
-      this.botRightLng = botRightLng;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s[%s, %d, %1.9f, %1.9f, %1.9f, %1.9f]", getClass().getSimpleName(), action, zoom, topLeftLat, topLeftLng, botRightLat, botRightLng);
-    }
-  }
-
-  public static class TelemetryResponse {
-    public final String message;
-    public final int httpStatusCode;
-    public final TelemetryRequest telemetryRequest;
-
-    @JsonCreator
-    public TelemetryResponse(
-        @JsonProperty("message") String message,
-        @JsonProperty("httpStatusCode") int httpStatusCode,
-        @JsonProperty("deviceTelemetryRequest") TelemetryRequest telemetryRequest) {
-      this.message = message;
-      this.httpStatusCode = httpStatusCode;
-      this.telemetryRequest = telemetryRequest;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s[%d, %s, %s]", getClass().getSimpleName(), httpStatusCode, message, telemetryRequest);
+  private static Optional<String> url(ActorSystem<?> actorSystem) {
+    try {
+      final String host = actorSystem.settings().config().getString("woe.twin.http.server.host");
+      final int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
+      return Optional.of(String.format("http://%s:%d/telemetry", host, port));
+    } catch (ConfigException e) {
+      return Optional.empty();
     }
   }
 

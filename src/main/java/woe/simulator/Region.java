@@ -26,6 +26,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   final TimerScheduler<Command> timerScheduler;
   final ActorContext<Command> actorContext;
   final HttpClient httpClient;
+  final GrpcClient grpcClient;
   static final EntityTypeKey<Command> entityTypeKey = EntityTypeKey.create(Command.class, Region.class.getSimpleName());
 
   static Behavior<Command> create(String entityId, ClusterSharding clusterSharding) {
@@ -40,7 +41,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     this.clusterSharding = clusterSharding;
     this.actorContext = actorContext;
     this.timerScheduler = timerScheduler;
-    this.httpClient = new HttpClient(actorContext.getSystem());
+    httpClient = new HttpClient(actorContext.getSystem());
+    grpcClient = new GrpcClient(actorContext.getSystem());
   }
 
   @Override
@@ -219,7 +221,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     httpClient.post(selectionCommandNotify)
         .thenAccept(t -> {
           if (t.httpStatusCode != 200) {
-            log().warn("Telemetry request failed {}", t);
+            log().warn("HTTP telemetry request failed {}", t);
+          }
+        });
+    grpcClient.post(selectionCommandNotify)
+        .thenAccept(t -> {
+          if (t.httpStatusCode != 200) {
+            log().warn("gRPC telemetry request failed {}", t);
           }
         });
   }

@@ -41,7 +41,7 @@ public class HttpClientTest {
     // London across Westminster Bridge at Park Plaza Hotel
     final WorldMap.Region region = regionAtLatLng(18, new WorldMap.LatLng(51.50079211, -0.11682093));
     final Region.SelectionCreate selectionCreate = new Region.SelectionCreate(region, Instant.now(), false, null);
-    final HttpClient.TelemetryResponse telemetryResponse = httpClient.post(selectionCreate)
+    final Telemetry.TelemetryResponse telemetryResponse = httpClient.post(selectionCreate)
         .toCompletableFuture().join();
 
     assertEquals(201, telemetryResponse.httpStatusCode);
@@ -70,9 +70,9 @@ public class HttpClientTest {
               return complete(StatusCodes.OK, selectionCreate, Jackson.marshaller());
             }),
             post(() -> entity(
-                Jackson.unmarshaller(HttpClient.TelemetryRequest.class),
+                Jackson.unmarshaller(Telemetry.TelemetryRequest.class),
                 telemetryRequest -> {
-                  final HttpClient.TelemetryResponse telemetryResponse = new HttpClient.TelemetryResponse("ok", StatusCodes.CREATED.intValue(), telemetryRequest);
+                  final Telemetry.TelemetryResponse telemetryResponse = new Telemetry.TelemetryResponse("ok", StatusCodes.CREATED.intValue(), telemetryRequest);
                   return complete(StatusCodes.CREATED, telemetryResponse, Jackson.marshaller());
                 })
             )
