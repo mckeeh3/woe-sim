@@ -69,8 +69,8 @@ public class GrpcClient {
 
   static Optional<HostPort> hostPort(ActorSystem<?> actorSystem) {
     try {
-      final String host = actorSystem.settings().config().getString("woe.simulator.grpc.host");
-      final int port = actorSystem.settings().config().getInt("woe.simulator.grpc.port");
+      final String host = actorSystem.settings().config().getString("woe.twin.grpc.server.host");
+      final int port = actorSystem.settings().config().getInt("woe.twin.grpc.server.port");
       return Optional.of(new HostPort(host, port));
     } catch (ConfigException e) {
       return Optional.empty();
