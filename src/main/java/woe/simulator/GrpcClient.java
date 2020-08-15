@@ -3,9 +3,9 @@ package woe.simulator;
 import akka.actor.typed.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import com.typesafe.config.ConfigException;
-import woe.simulator.grpc.TelemetryRequestGrpc;
-import woe.simulator.grpc.TelemetryResponseGrpc;
-import woe.simulator.grpc.TelemetryServiceClient;
+import woe.twin.grpc.TelemetryRequestGrpc;
+import woe.twin.grpc.TelemetryResponseGrpc;
+import woe.twin.grpc.TelemetryServiceClient;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

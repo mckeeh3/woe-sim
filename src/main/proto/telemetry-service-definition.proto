@@ -2,10 +2,10 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "woe.simulator.grpc";
+option java_package = "woe.twin.grpc";
 option java_outer_classname = "TelemetryServiceProto";
 
-package woe.simulator.grpc;
+package woe.twin.grpc;
 
 service TelemetryService {
   rpc Telemetry (TelemetryRequestGrpc) returns (TelemetryResponseGrpc) {}
