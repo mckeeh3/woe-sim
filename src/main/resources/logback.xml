@@ -22,6 +22,7 @@
     <logger name="akka.io" level="INFO"/>
     <logger name="akka.http" level="INFO"/>
     <logger name="woe.simulator.Region" level="INFO"/>
+    <logger name="woe.twin.grpc" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>
