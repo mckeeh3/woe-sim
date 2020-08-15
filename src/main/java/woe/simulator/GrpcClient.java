@@ -31,7 +31,8 @@ public class GrpcClient {
     if (host == null) {
       return CompletableFuture.completedFuture(new Telemetry.TelemetryResponse("no-op", 200, telemetryRequest));
     }
-    final GrpcClientSettings grpcClientSettings = GrpcClientSettings.connectToServiceAt(host, port, actorSystem);
+    final GrpcClientSettings grpcClientSettings = GrpcClientSettings.connectToServiceAt(host, port, actorSystem)
+        .withTls(false);
     final TelemetryServiceClient telemetryServiceClient = TelemetryServiceClient.create(grpcClientSettings, actorSystem);
     final CompletionStage<TelemetryResponseGrpc> telemetryResponseGrpc = telemetryServiceClient.telemetry(toTelemetryRequestGrpc(telemetryRequest));
     return telemetryResponseGrpc.thenApply(this::toTelemetryResponse);
