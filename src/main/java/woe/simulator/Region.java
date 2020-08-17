@@ -28,19 +28,19 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   final Clients clients;
   static final EntityTypeKey<Command> entityTypeKey = EntityTypeKey.create(Command.class, Region.class.getSimpleName());
 
-  static Behavior<Command> create(String entityId, ClusterSharding clusterSharding) {
+  static Behavior<Command> create(String entityId, ClusterSharding clusterSharding, Clients clients) {
     return Behaviors.setup(actorContext ->
-        Behaviors.withTimers(timer -> new Region(entityId, clusterSharding, actorContext, timer)));
+        Behaviors.withTimers(timer -> new Region(entityId, clusterSharding, clients, actorContext, timer)));
   }
 
-  private Region(String entityId, ClusterSharding clusterSharding, ActorContext<Command> actorContext, TimerScheduler<Command> timerScheduler) {
+  private Region(String entityId, ClusterSharding clusterSharding, Clients clients, ActorContext<Command> actorContext, TimerScheduler<Command> timerScheduler) {
     super(PersistenceId.of(entityTypeKey.name(), entityId));
     this.entityId = entityId;
     this.region = WorldMap.regionForEntityId(entityId);
     this.clusterSharding = clusterSharding;
     this.actorContext = actorContext;
+    this.clients = clients;
     this.timerScheduler = timerScheduler;
-    clients = new Clients(actorContext.getSystem());
   }
 
   @Override

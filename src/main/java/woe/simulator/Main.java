@@ -59,8 +59,8 @@ public class Main {
 
   static void startHttpServer(ActorSystem<?> actorSystem) {
     try {
-      String host = InetAddress.getLocalHost().getHostName();
-      int port = actorSystem.settings().config().getInt("woe.simulator.http.server.port");
+      final String host = InetAddress.getLocalHost().getHostName();
+      final int port = actorSystem.settings().config().getInt("woe.simulator.http.server.port");
       HttpServer.start(host, port, actorSystem);
     } catch (UnknownHostException e) {
       actorSystem.log().error("Http server start failure.", e);
@@ -68,12 +68,13 @@ public class Main {
   }
 
   private static void startRegionClusterSharding(ActorSystem<?> actorSystem) {
-    ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
+    final ClusterSharding clusterSharding = ClusterSharding.get(actorSystem);
+    final Clients clients = new Clients(actorSystem);
     clusterSharding.init(
         Entity.of(
             Region.entityTypeKey,
             entityContext ->
-                Region.create(entityContext.getEntityId(), clusterSharding)
+                Region.create(entityContext.getEntityId(), clusterSharding, clients)
         ).withEntityProps(DispatcherSelector.fromConfig("woe.twin.region-entity-dispatcher"))
     );
   }

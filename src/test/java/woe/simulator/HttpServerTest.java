@@ -51,7 +51,7 @@ public class HttpServerTest {
         Entity.of(
             Region.entityTypeKey,
             entityContext ->
-                Region.create(entityContext.getEntityId(), clusterSharding)
+                Region.create(entityContext.getEntityId(), clusterSharding, new Clients(testKit.system()))
         )
     );
     testKit.system().log().info("Test cluster node {}", Cluster.get(testKit.system()).selfMember());
