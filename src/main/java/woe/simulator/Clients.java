@@ -31,8 +31,10 @@ class Clients {
     endPoints(actorSystem).forEach(clientInfo -> {
       if ("http".equalsIgnoreCase(clientInfo.protocol)) {
         clients.add(new HttpClient(actorSystem, clientInfo.host, clientInfo.port));
+        actorSystem.log().info("Using HTTP client {}", clientInfo);
       } else if ("grpc".equalsIgnoreCase(clientInfo.protocol)) {
         clients.add(new GrpcClient(actorSystem, clientInfo.host, clientInfo.port));
+        actorSystem.log().info("Using gRPC client {}", clientInfo);
       } else {
         throw new RuntimeException(String.format("Invalid client protocol '%s', must be either 'http' or 'grpc'.", clientInfo));
       }
