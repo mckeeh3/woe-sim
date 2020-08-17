@@ -12,23 +12,20 @@ import akka.stream.Materializer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.typesafe.config.ConfigException;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-class HttpClient {
+class HttpClient implements Client {
   private final ActorSystem<?> actorSystem;
   private final Materializer materializer;
   private final String url;
 
-  HttpClient(ActorSystem<?> actorSystem) {
+  HttpClient(ActorSystem<?> actorSystem, String host, int port) {
     this.actorSystem = actorSystem;
     this.materializer = Materializer.matFromSystem(actorSystem.classicSystem());
-    final Optional<String> urlOpt = url(actorSystem);
-    url = urlOpt.isEmpty() ? null : urlOpt.get();
+    url = String.format("http://%s:%d/telemetry", host, port);
   }
 
   HttpClient(ActorSystem<?> actorSystem, String url) {
@@ -37,7 +34,8 @@ class HttpClient {
     this.url = url;
   }
 
-  CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
+  @Override
+  public CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
     return post(new Telemetry.TelemetryRequest(selectionCommand.action.name(), selectionCommand.region));
   }
 
@@ -56,16 +54,6 @@ class HttpClient {
             return CompletableFuture.completedFuture(new Telemetry.TelemetryResponse(r.status().reason(), r.status().intValue(), telemetryRequest));
           }
         });
-  }
-
-  private static Optional<String> url(ActorSystem<?> actorSystem) {
-    try {
-      final String host = actorSystem.settings().config().getString("woe.twin.http.server.host");
-      final int port = actorSystem.settings().config().getInt("woe.twin.http.server.port");
-      return Optional.of(String.format("http://%s:%d/telemetry", host, port));
-    } catch (ConfigException e) {
-      return Optional.empty();
-    }
   }
 
   private static HttpEntity.Strict toHttpEntity(Object pojo) {

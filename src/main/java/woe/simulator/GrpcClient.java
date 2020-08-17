@@ -2,28 +2,26 @@ package woe.simulator;
 
 import akka.actor.typed.ActorSystem;
 import akka.grpc.GrpcClientSettings;
-import com.typesafe.config.ConfigException;
 import woe.twin.grpc.TelemetryRequestGrpc;
 import woe.twin.grpc.TelemetryResponseGrpc;
 import woe.twin.grpc.TelemetryServiceClient;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class GrpcClient {
+class GrpcClient implements Client {
   private final ActorSystem<?> actorSystem;
   private final String host;
   private final int port;
 
-  public GrpcClient(ActorSystem<?> actorSystem) {
+  public GrpcClient(ActorSystem<?> actorSystem, String host, int port) {
     this.actorSystem = actorSystem;
-    final Optional<HostPort> hostPort = hostPort(actorSystem);
-    this.host = hostPort.isEmpty() ? null : hostPort.get().host;
-    this.port = hostPort.isEmpty() ? -1 : hostPort.get().port;
+    this.host = host;
+    this.port = port;
   }
 
-  CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
+  @Override
+  public CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
     return post(new Telemetry.TelemetryRequest(selectionCommand.action.name(), selectionCommand.region));
   }
 
@@ -66,25 +64,5 @@ public class GrpcClient {
         telemetryRequestGrpc.getBotRightLat(),
         telemetryRequestGrpc.getBotRightLng()
     );
-  }
-
-  static Optional<HostPort> hostPort(ActorSystem<?> actorSystem) {
-    try {
-      final String host = actorSystem.settings().config().getString("woe.twin.grpc.server.host");
-      final int port = actorSystem.settings().config().getInt("woe.twin.grpc.server.port");
-      return Optional.of(new HostPort(host, port));
-    } catch (ConfigException e) {
-      return Optional.empty();
-    }
-  }
-
-  static class HostPort {
-    final String host;
-    final int port;
-
-    private HostPort(String host, int port) {
-      this.host = host;
-      this.port = port;
-    }
   }
 }

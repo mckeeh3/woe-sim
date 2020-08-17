@@ -36,6 +36,8 @@ import java.util.stream.IntStream;
 import static akka.http.javadsl.server.Directives.*;
 import static woe.simulator.WorldMap.*;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class RegionTest {
   private static ClusterSharding clusterSharding;
 

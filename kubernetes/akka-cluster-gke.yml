@@ -65,10 +65,8 @@ spec:
               value: "woe-sim-service.woe-sim-1.svc.cluster.local"
             - name: woe_simulator_http_server_port
               value: "8080"
-            - name: woe_twin_http_server_host
-              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
-            - name: woe_twin_http_server_port
-              value: "8080"
+            - name: woe_twin_servers
+              value: "http:woe-twin-service.woe-twin-1.svc.cluster.local:8080"
 
 ---
 kind: Role
