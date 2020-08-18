@@ -6,18 +6,15 @@ import woe.twin.grpc.TelemetryRequestGrpc;
 import woe.twin.grpc.TelemetryResponseGrpc;
 import woe.twin.grpc.TelemetryServiceClient;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 class GrpcClient implements Client {
-  private final ActorSystem<?> actorSystem;
-  private final String host;
-  private final int port;
+  private final TelemetryServiceClient telemetryServiceClient;
 
   public GrpcClient(ActorSystem<?> actorSystem, String host, int port) {
-    this.actorSystem = actorSystem;
-    this.host = host;
-    this.port = port;
+    final GrpcClientSettings grpcClientSettings = GrpcClientSettings.connectToServiceAt(host, port, actorSystem)
+        .withTls(false);
+    telemetryServiceClient = TelemetryServiceClient.create(grpcClientSettings, actorSystem);
   }
 
   @Override
@@ -26,12 +23,6 @@ class GrpcClient implements Client {
   }
 
   private CompletionStage<Telemetry.TelemetryResponse> post(Telemetry.TelemetryRequest telemetryRequest) {
-    if (host == null) {
-      return CompletableFuture.completedFuture(new Telemetry.TelemetryResponse("no-op", 200, telemetryRequest));
-    }
-    final GrpcClientSettings grpcClientSettings = GrpcClientSettings.connectToServiceAt(host, port, actorSystem)
-        .withTls(false);
-    final TelemetryServiceClient telemetryServiceClient = TelemetryServiceClient.create(grpcClientSettings, actorSystem);
     final CompletionStage<TelemetryResponseGrpc> telemetryResponseGrpc = telemetryServiceClient.telemetry(toTelemetryRequestGrpc(telemetryRequest));
     return telemetryResponseGrpc.thenApply(this::toTelemetryResponse);
   }
