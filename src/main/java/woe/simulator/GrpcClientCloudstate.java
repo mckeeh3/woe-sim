@@ -1,0 +1,67 @@
+package woe.simulator;
+
+import akka.actor.typed.ActorSystem;
+import akka.grpc.GrpcClientSettings;
+import woe.twin.grpc.cloudstate.*;
+
+import java.util.concurrent.CompletionStage;
+
+class GrpcClientCloudstate implements Client {
+  private final DigitalTwinClient grpcClient;
+
+  public GrpcClientCloudstate(ActorSystem<?> actorSystem, String host, int port) {
+    final GrpcClientSettings grpcClientSettings = GrpcClientSettings.connectToServiceAt(host, port, actorSystem)
+        .withTls(false);
+    grpcClient = DigitalTwinClient.create(grpcClientSettings, actorSystem);
+  }
+
+  @Override
+  public CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
+    switch (selectionCommand.action) {
+      case create:
+        return grpcClient.addDevice(getRegin(getWordwideregion(selectionCommand.region)))
+            .thenApply(this::fromState);
+      case delete:
+        return grpcClient.deleteDevice(getRegin(getWordwideregion(selectionCommand.region)))
+            .thenApply(this::fromState);
+      case happy:
+        return grpcClient.setDeviceHappy(getRegin(getWordwideregion(selectionCommand.region)))
+            .thenApply(this::fromState);
+      case sad:
+        return grpcClient.setDeviceSad(getRegin(getWordwideregion(selectionCommand.region)))
+            .thenApply(this::fromState);
+      case ping:
+        PingRequest request = PingRequest.newBuilder().setWordwideregion(getWordwideregion(selectionCommand.region)).build();
+        return grpcClient.pingDevice(request).thenApply(this::fromPing);
+    }
+    return null;
+  }
+
+  private static String getWordwideregion(WorldMap.Region region) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(region.zoom).append("_");
+    builder.append(region.botRight.lat).append("_");
+    builder.append(region.botRight.lng).append("_");
+    builder.append(region.topLeft.lat).append("_");
+    builder.append(region.topLeft.lng);
+    return builder.toString();
+  }
+
+  private static RegionGrpc getRegin(String name) {
+    return RegionGrpc.newBuilder().setWordwideregion(name).build();
+  }
+
+  private Telemetry.TelemetryResponse fromState(TwinState state) {
+    return new Telemetry.TelemetryResponse(
+        "Request completed",
+        200,
+        null);
+  }
+
+  private Telemetry.TelemetryResponse fromPing(PingResponse ping) {
+    return new Telemetry.TelemetryResponse(
+        "Request completed",
+        200,
+        null);
+  }
+}

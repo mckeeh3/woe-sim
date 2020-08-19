@@ -13,7 +13,7 @@ public class ClientsTest {
   public static final TestKitJunitResource testKit = new TestKitJunitResource();
 
   @Test
-  public void t() {
+  public void createViaConfigurationSettings() {
     final List<Client> clients = Clients.configuredClients(testKit.system());
     assertTrue(clients.size() > 0);
   }

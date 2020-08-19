@@ -26,23 +26,6 @@ class Clients {
             }));
   }
 
-  private static List<Client> clients(ActorSystem<?> actorSystem) {
-    final List<Client> clients = new ArrayList<>();
-
-    clientConfigurationList(actorSystem).forEach(clientConfiguration -> {
-      if ("http".equalsIgnoreCase(clientConfiguration.name)) {
-        clients.add(new HttpClient(actorSystem, clientConfiguration.host, clientConfiguration.port));
-        actorSystem.log().info("Using HTTP client {}", clientConfiguration);
-      } else if ("grpc".equalsIgnoreCase(clientConfiguration.name)) {
-        clients.add(new GrpcClient(actorSystem, clientConfiguration.host, clientConfiguration.port));
-        actorSystem.log().info("Using gRPC client {}", clientConfiguration);
-      } else {
-        throw new RuntimeException(String.format("Invalid client protocol '%s', must be either 'http' or 'grpc'.", clientConfiguration));
-      }
-    });
-    return clients;
-  }
-
   static List<Client> configuredClients(ActorSystem<?> actorSystem) {
     List<Client> clients = new ArrayList<>();
 
@@ -67,7 +50,7 @@ class Clients {
     clients.forEach(endpoint -> {
       final String[] p = endpoint.split(":");
       if (p.length != 3) {
-        throw new RuntimeException(String.format("Illegal client endpoint syntax '%s', expected 'client-class-name:host:port.", endpoint));
+        throw new RuntimeException(String.format("Illegal telemetry client endpoint syntax '%s', expected 'client-class-name:host:port.", endpoint));
       }
       clientConfigurationList.add(new ClientConfiguration(p[0], p[1], Integer.parseInt(p[2])));
     });

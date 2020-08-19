@@ -1,0 +1,40 @@
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "woe.twin.grpc.cloudstate";
+option java_outer_classname = "DigitalTwinServiceProto";
+
+import "cloudstate/entity_key.proto";
+
+message RegionGrpc {
+    string wordwideregion = 1 [(.cloudstate.entity_key) = true];
+}
+
+message PingRequest {
+    string wordwideregion = 1 [(.cloudstate.entity_key) = true];
+    bytes data = 2;
+}
+
+message TwinState {
+    bool active = 1;
+    bool happy = 2;
+}
+
+message StateWIthPayload {
+    TwinState state = 1;
+    bytes payload = 2;
+}
+
+message PingResponse {
+    bytes data = 1;
+}
+
+service DigitalTwin {
+    rpc AddDevice(RegionGrpc) returns (TwinState);
+    rpc DeleteDevice(RegionGrpc) returns (TwinState);
+    rpc SetDeviceHappy(RegionGrpc) returns (TwinState);
+    rpc SetDeviceSad(RegionGrpc) returns (TwinState);
+    rpc GetDeviceState(RegionGrpc) returns (TwinState);
+    rpc PingDevice(PingRequest) returns (PingResponse);
+}
