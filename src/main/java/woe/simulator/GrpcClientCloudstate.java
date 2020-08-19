@@ -19,16 +19,16 @@ class GrpcClientCloudstate implements Client {
   public CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
     switch (selectionCommand.action) {
       case create:
-        return grpcClient.addDevice(getRegin(getWordwideregion(selectionCommand.region)))
+        return grpcClient.addDevice(getRegion(getWordwideregion(selectionCommand.region)))
             .thenApply(this::fromState);
       case delete:
-        return grpcClient.deleteDevice(getRegin(getWordwideregion(selectionCommand.region)))
+        return grpcClient.deleteDevice(getRegion(getWordwideregion(selectionCommand.region)))
             .thenApply(this::fromState);
       case happy:
-        return grpcClient.setDeviceHappy(getRegin(getWordwideregion(selectionCommand.region)))
+        return grpcClient.setDeviceHappy(getRegion(getWordwideregion(selectionCommand.region)))
             .thenApply(this::fromState);
       case sad:
-        return grpcClient.setDeviceSad(getRegin(getWordwideregion(selectionCommand.region)))
+        return grpcClient.setDeviceSad(getRegion(getWordwideregion(selectionCommand.region)))
             .thenApply(this::fromState);
       case ping:
         PingRequest request = PingRequest.newBuilder().setWordwideregion(getWordwideregion(selectionCommand.region)).build();
@@ -47,7 +47,7 @@ class GrpcClientCloudstate implements Client {
     return builder.toString();
   }
 
-  private static RegionGrpc getRegin(String name) {
+  private static RegionGrpc getRegion(String name) {
     return RegionGrpc.newBuilder().setWordwideregion(name).build();
   }
 
