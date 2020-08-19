@@ -13,7 +13,7 @@ class Clients {
 
   Clients(ActorSystem<?> actorSystem) {
     this.actorSystem = actorSystem;
-    clients = clients(actorSystem);
+    clients = configuredClients(actorSystem);
   }
 
   void post(Region.SelectionCommand selectionCommand) {
