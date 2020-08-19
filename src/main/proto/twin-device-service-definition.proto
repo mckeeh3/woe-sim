@@ -7,7 +7,7 @@ option java_outer_classname = "TelemetryServiceProto";
 
 package woe.twin.grpc;
 
-service TelemetryService {
+service TwinDeviceService {
   rpc Telemetry (TelemetryRequestGrpc) returns (TelemetryResponseGrpc) {}
 }
 

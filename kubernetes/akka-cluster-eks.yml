@@ -66,8 +66,8 @@ spec:
               value: "woe-sim-service.woe-sim-1.svc.cluster.local"
             - name: woe_simulator_http_server_port
               value: "8080"
-            - name: woe_twin_servers
-              value: "grpc:woe-twin-service.woe-twin-1.svc.cluster.local:8081"
+            - name: woe_twin_telemetry_servers
+              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081"
             - name: AWS_ACCESS_KEY
               valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_ACCESS_KEY } }
             - name: AWS_SECRET_ACCESS_KEY

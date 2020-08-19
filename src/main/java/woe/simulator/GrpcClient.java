@@ -4,17 +4,17 @@ import akka.actor.typed.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import woe.twin.grpc.TelemetryRequestGrpc;
 import woe.twin.grpc.TelemetryResponseGrpc;
-import woe.twin.grpc.TelemetryServiceClient;
+import woe.twin.grpc.TwinDeviceServiceClient;
 
 import java.util.concurrent.CompletionStage;
 
 class GrpcClient implements Client {
-  private final TelemetryServiceClient telemetryServiceClient;
+  private final TwinDeviceServiceClient twinDeviceServiceClient;
 
   public GrpcClient(ActorSystem<?> actorSystem, String host, int port) {
     final GrpcClientSettings grpcClientSettings = GrpcClientSettings.connectToServiceAt(host, port, actorSystem)
         .withTls(false);
-    telemetryServiceClient = TelemetryServiceClient.create(grpcClientSettings, actorSystem);
+    twinDeviceServiceClient = TwinDeviceServiceClient.create(grpcClientSettings, actorSystem);
   }
 
   @Override
@@ -23,7 +23,7 @@ class GrpcClient implements Client {
   }
 
   private CompletionStage<Telemetry.TelemetryResponse> post(Telemetry.TelemetryRequest telemetryRequest) {
-    final CompletionStage<TelemetryResponseGrpc> telemetryResponseGrpc = telemetryServiceClient.telemetry(toTelemetryRequestGrpc(telemetryRequest));
+    final CompletionStage<TelemetryResponseGrpc> telemetryResponseGrpc = twinDeviceServiceClient.telemetry(toTelemetryRequestGrpc(telemetryRequest));
     return telemetryResponseGrpc.thenApply(this::toTelemetryResponse);
   }
 

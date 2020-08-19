@@ -2,6 +2,7 @@ package woe.simulator;
 
 import akka.actor.typed.ActorSystem;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +11,7 @@ class Clients {
   private final ActorSystem<?> actorSystem;
   private final List<Client> clients;
 
-  public Clients(ActorSystem<?> actorSystem) {
+  Clients(ActorSystem<?> actorSystem) {
     this.actorSystem = actorSystem;
     clients = clients(actorSystem);
   }
@@ -28,48 +29,64 @@ class Clients {
   private static List<Client> clients(ActorSystem<?> actorSystem) {
     final List<Client> clients = new ArrayList<>();
 
-    endPoints(actorSystem).forEach(clientInfo -> {
-      if ("http".equalsIgnoreCase(clientInfo.protocol)) {
-        clients.add(new HttpClient(actorSystem, clientInfo.host, clientInfo.port));
-        actorSystem.log().info("Using HTTP client {}", clientInfo);
-      } else if ("grpc".equalsIgnoreCase(clientInfo.protocol)) {
-        clients.add(new GrpcClient(actorSystem, clientInfo.host, clientInfo.port));
-        actorSystem.log().info("Using gRPC client {}", clientInfo);
+    clientConfigurationList(actorSystem).forEach(clientConfiguration -> {
+      if ("http".equalsIgnoreCase(clientConfiguration.name)) {
+        clients.add(new HttpClient(actorSystem, clientConfiguration.host, clientConfiguration.port));
+        actorSystem.log().info("Using HTTP client {}", clientConfiguration);
+      } else if ("grpc".equalsIgnoreCase(clientConfiguration.name)) {
+        clients.add(new GrpcClient(actorSystem, clientConfiguration.host, clientConfiguration.port));
+        actorSystem.log().info("Using gRPC client {}", clientConfiguration);
       } else {
-        throw new RuntimeException(String.format("Invalid client protocol '%s', must be either 'http' or 'grpc'.", clientInfo));
+        throw new RuntimeException(String.format("Invalid client protocol '%s', must be either 'http' or 'grpc'.", clientConfiguration));
       }
     });
     return clients;
   }
 
-  private static List<ClientInfo> endPoints(ActorSystem<?> actorSystem) {
-    final String clientsStr = actorSystem.settings().config().getString("woe.twin.servers");
-    final List<String> clients = Arrays.asList(clientsStr.split(".,."));
-    final List<ClientInfo> clientInfoList = new ArrayList<>();
+  static List<Client> configuredClients(ActorSystem<?> actorSystem) {
+    List<Client> clients = new ArrayList<>();
+
+    clientConfigurationList(actorSystem).forEach(clientConfiguration -> {
+      try {
+        clients.add((Client) Class.forName(clientConfiguration.name)
+            .getConstructor(ActorSystem.class, String.class, int.class)
+            .newInstance(actorSystem, clientConfiguration.host, clientConfiguration.port));
+      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        throw new RuntimeException(String.format("Invalid client class '%s'.", clientConfiguration), e);
+      }
+    });
+
+    return clients;
+  }
+
+  static List<ClientConfiguration> clientConfigurationList(ActorSystem<?> actorSystem) {
+    final String clientsStr = actorSystem.settings().config().getString("woe.twin.telemetry.clients");
+    final List<String> clients = Arrays.asList(clientsStr.split("\\s*,\\s*"));
+    final List<ClientConfiguration> clientConfigurationList = new ArrayList<>();
     clients.forEach(endpoint -> {
       final String[] p = endpoint.split(":");
       if (p.length != 3) {
-        throw new RuntimeException(String.format("Illegal client endpoint syntax '%s', expected 'http|grpc:host:port.", endpoint));
+        throw new RuntimeException(String.format("Illegal client endpoint syntax '%s', expected 'client-class-name:host:port.", endpoint));
       }
-      clientInfoList.add(new ClientInfo(p[0], p[1], Integer.parseInt(p[2])));
+      clientConfigurationList.add(new ClientConfiguration(p[0], p[1], Integer.parseInt(p[2])));
     });
-    return clientInfoList;
+    return clientConfigurationList;
   }
 
-  private static class ClientInfo {
-    final String protocol;
+  static class ClientConfiguration {
+    final String name;
     final String host;
     final int port;
 
-    private ClientInfo(String protocol, String host, int port) {
-      this.protocol = protocol;
+    ClientConfiguration(String name, String host, int port) {
+      this.name = name;
       this.host = host;
       this.port = port;
     }
 
     @Override
     public String toString() {
-      return String.format("%s[%s, %s, %d]", getClass().getSimpleName(), protocol, host, port);
+      return String.format("%s[%s, %s, %d]", getClass().getSimpleName(), name, host, port);
     }
   }
 }

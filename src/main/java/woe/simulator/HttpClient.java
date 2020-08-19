@@ -22,7 +22,7 @@ class HttpClient implements Client {
   private final Materializer materializer;
   private final String url;
 
-  HttpClient(ActorSystem<?> actorSystem, String host, int port) {
+  public HttpClient(ActorSystem<?> actorSystem, String host, int port) {
     this.actorSystem = actorSystem;
     this.materializer = Materializer.matFromSystem(actorSystem.classicSystem());
     url = String.format("http://%s:%d/telemetry", host, port);
