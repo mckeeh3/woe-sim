@@ -51,6 +51,7 @@ class Clients {
         clients.add((Client) Class.forName(clientConfiguration.name)
             .getConstructor(ActorSystem.class, String.class, int.class)
             .newInstance(actorSystem, clientConfiguration.host, clientConfiguration.port));
+        actorSystem.log().info("Using telemetry client {}", clientConfiguration);
       } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
         throw new RuntimeException(String.format("Invalid client class '%s'.", clientConfiguration), e);
       }
