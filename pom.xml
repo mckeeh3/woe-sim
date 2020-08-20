@@ -225,6 +225,14 @@
                 </configuration>
             </plugin>
 
+            <!-- mvn versions:display-dependency-updates -->
+            <!-- mvn versions:display-property-updates -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.8.1</version>
+            </plugin>
+
             <!-- See When using JarJar, OneJar, Assembly or any jar-bundler -->
             <!-- https://doc.akka.io/docs/akka/current/general/configuration.html#when-using-jarjar-onejar-assembly-or-any-jar-bundler -->
             <!-- mvn clean package docker:build -->
