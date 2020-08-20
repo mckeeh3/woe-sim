@@ -87,7 +87,8 @@ interface WorldMap {
   static double percentForSelectionAtZoom(int zoomSelection, int zoomCount) {
     final double regionsForStack = regionCountForSelectionStack(zoomSelection);
     final double regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
-    return regionsForZoom / regionsForStack;
+    final double regionsForZoom18 = regionCountForSelectionAtZoom(zoomSelection, 18);
+    return (regionsForZoom / regionsForStack) / (regionsForZoom18 / regionsForStack);
   }
 
   private static List<Region> subRegionsForZoom0() {

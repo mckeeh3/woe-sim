@@ -416,11 +416,9 @@ public class WorldMapTest {
     assertTrue(region0.contains(zoomRegions.get(0).get(0)));
     assertTrue(region0.contains(zoomRegions.get(0).get(1)));
 
-    IntStream.range(1, zoomRegions.size()).forEach(zoom -> {
-      IntStream.range(0, zoomRegions.get(zoom).size()).forEach(srIdx -> {
-        assertTrue(zoomRegions.get(zoom - 1).get(0).contains(zoomRegions.get(zoom).get(srIdx)));
-      });
-    });
+    IntStream.range(1, zoomRegions.size()).forEach(zoom ->
+        IntStream.range(0, zoomRegions.get(zoom).size()).forEach(srIdx ->
+            assertTrue(zoomRegions.get(zoom - 1).get(0).contains(zoomRegions.get(zoom).get(srIdx)))));
   }
 
   @Test
@@ -509,7 +507,8 @@ public class WorldMapTest {
       IntStream.rangeClosed(3, 18).forEach(zoomCount -> {
         final double regionsForStack = regionCountForSelectionStack(zoomSelection);
         final double regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
-        System.out.printf("%2d, %2d, %1.9f, %,13.0f, %,13.0f%n", zoomSelection, zoomCount, percentForSelectionAtZoom(zoomSelection, zoomCount), regionsForZoom, regionsForStack);
+        final double percent = percentForSelectionAtZoom(zoomSelection, zoomCount);
+        System.out.printf("%2d, %2d, %1.9f, %,13.0f, %,13.0f%n", zoomSelection, zoomCount, percent, regionsForZoom, regionsForStack);
       });
       // Add 3 to total for zooms 0, 1, 2
       final int total = 3 + IntStream.rangeClosed(3, 18).reduce(0, (t, z) -> t + regionCountForSelectionAtZoom(zoomSelection, z));
@@ -521,9 +520,8 @@ public class WorldMapTest {
   @Ignore
   @Test
   public void calculateIotDevicesSelectedPerZoomLevel() {
-    IntStream.range(0, 16).forEach(zoom -> {
-      System.out.printf("Zoom %2d %,d%n", 18 - zoom, devicesWithin(18 - zoom));
-    });
+    IntStream.range(0, 16).forEach(zoom ->
+        System.out.printf("Zoom %2d %,d%n", 18 - zoom, devicesWithin(18 - zoom)));
   }
 
   private List<List<WorldMap.Region>> zoomRegions() {
