@@ -15,17 +15,17 @@ interface WorldMap {
   int zoomMax = 18;
 
   static String entityIdOf(Region region) {
-    return String.format("region:%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
+    return String.format("%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
         region.topLeft.lat, region.topLeft.lng, region.botRight.lat, region.botRight.lng);
   }
 
   static Region regionForEntityId(String entityId) {
     String[] fields = entityId.split(":");
-    int zoom = Integer.parseInt(fields[1]);
-    double topLeftLat = Double.parseDouble(fields[2]);
-    double topLeftLng = Double.parseDouble(fields[3]);
-    double botRightLat = Double.parseDouble(fields[4]);
-    double botRightLng = Double.parseDouble(fields[5]);
+    int zoom = Integer.parseInt(fields[0]);
+    double topLeftLat = Double.parseDouble(fields[1]);
+    double topLeftLng = Double.parseDouble(fields[2]);
+    double botRightLat = Double.parseDouble(fields[3]);
+    double botRightLng = Double.parseDouble(fields[4]);
     return new WorldMap.Region(zoom, topLeft(topLeftLat, topLeftLng), botRight(botRightLat, botRightLng));
   }
 
