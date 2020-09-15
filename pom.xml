@@ -17,6 +17,7 @@
         <akka.management.version>1.0.8</akka.management.version>
         <akka.persistence.cassandra.version>1.0.1</akka.persistence.cassandra.version>
         <akka.grpc.version>1.0.1</akka.grpc.version>
+        <datastax.core.version>4.6.1</datastax.core.version>
         <grpc.version>1.30.2</grpc.version>
         <yugabyte.driver.version>3.8.0-yb-5</yugabyte.driver.version>
         <jackson.version>2.10.3</jackson.version>
@@ -62,6 +63,11 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-persistence-query_${scala.version}</artifactId>
             <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
+            <version>${datastax.core.version}</version>
         </dependency>
         <!--dependency>
             <groupId>com.yugabyte</groupId>
