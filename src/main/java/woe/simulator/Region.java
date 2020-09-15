@@ -474,6 +474,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
             status = Status.partiallySelected;
           }
           break;
+        default:
+          break;
       }
       return this;
     }
