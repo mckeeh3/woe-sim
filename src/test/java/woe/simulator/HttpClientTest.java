@@ -1,27 +1,32 @@
 package woe.simulator;
 
-import akka.actor.ActorSystem;
-import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
-import akka.http.javadsl.ConnectHttp;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.ServerBinding;
-import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.StatusCodes;
-import akka.http.javadsl.server.Route;
-import akka.stream.Materializer;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import org.junit.ClassRule;
-import org.junit.Test;
+import static akka.http.javadsl.server.Directives.complete;
+import static akka.http.javadsl.server.Directives.concat;
+import static akka.http.javadsl.server.Directives.entity;
+import static akka.http.javadsl.server.Directives.get;
+import static akka.http.javadsl.server.Directives.path;
+import static akka.http.javadsl.server.Directives.post;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static woe.simulator.WorldMap.regionAtLatLng;
+import static woe.simulator.WorldMap.regionForZoom0;
 
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
-import static akka.http.javadsl.server.Directives.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static woe.simulator.WorldMap.regionAtLatLng;
-import static woe.simulator.WorldMap.regionForZoom0;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import akka.actor.ActorSystem;
+import akka.actor.testkit.typed.javadsl.TestKitJunitResource;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.marshallers.jackson.Jackson;
+import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.Route;
 
 public class HttpClientTest {
   @ClassRule
@@ -56,9 +61,7 @@ public class HttpClientTest {
   private static CompletionStage<ServerBinding> httpServer(String host, int port) {
     ActorSystem actorSystem = testKit.system().classicSystem();
 
-    return Http.get(actorSystem.classicSystem())
-        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer()),
-            ConnectHttp.toHost(host, port), materializer());
+    return Http.get(actorSystem.classicSystem()).newServerAt(host, port).bind(route());
   }
 
   private static Route route() {
@@ -78,9 +81,5 @@ public class HttpClientTest {
             )
         ))
     );
-  }
-
-  private static Materializer materializer() {
-    return Materializer.matFromSystem(testKit.system().classicSystem());
   }
 }

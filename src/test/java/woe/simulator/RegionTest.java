@@ -1,5 +1,31 @@
 package woe.simulator;
 
+import static akka.http.javadsl.server.Directives.complete;
+import static akka.http.javadsl.server.Directives.concat;
+import static akka.http.javadsl.server.Directives.entity;
+import static akka.http.javadsl.server.Directives.get;
+import static akka.http.javadsl.server.Directives.path;
+import static akka.http.javadsl.server.Directives.post;
+import static akka.http.javadsl.server.Directives.respondWithHeader;
+import static woe.simulator.WorldMap.entityIdOf;
+import static woe.simulator.WorldMap.regionForZoom0;
+import static woe.simulator.WorldMap.subRegionsFor;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import akka.actor.ActorSystem;
 import akka.actor.testkit.typed.javadsl.ActorTestKit;
 import akka.actor.testkit.typed.javadsl.SerializationTestKit;
@@ -9,34 +35,13 @@ import akka.cluster.Cluster;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.server.Route;
-import akka.stream.Materializer;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletionStage;
-import java.util.stream.IntStream;
-
-import static akka.http.javadsl.server.Directives.*;
-import static woe.simulator.WorldMap.*;
-
-import static org.junit.jupiter.api.Assertions.*;
+import woe.simulator.WorldMap.LatLng;
 
 public class RegionTest {
   private static ClusterSharding clusterSharding;
@@ -246,6 +251,7 @@ public class RegionTest {
   // Create a stack of regions from region 0, the entire earth, to region 18, the smallest region.
   // Each list item is a list of sub-regions of the region above by zoom levels.
   // Each list item's sub-region list is created by selecting the sub-regions from item 0 from he prior list.
+  /*
   private List<List<WorldMap.Region>> zoomRegions() {
     List<List<WorldMap.Region>> zoomRegions = new ArrayList<>();
 
@@ -258,13 +264,11 @@ public class RegionTest {
     });
     return zoomRegions;
   }
-
+  */
   private static CompletionStage<ServerBinding> httpServer(String host, int port) {
     ActorSystem actorSystem = testKit.system().classicSystem();
 
-    return Http.get(actorSystem.classicSystem())
-        .bindAndHandle(route().flow(actorSystem.classicSystem(), materializer()),
-            ConnectHttp.toHost(host, port), materializer());
+    return Http.get(actorSystem.classicSystem()).newServerAt(host, port).bind(route());
   }
 
   private static Route route() {
@@ -286,9 +290,5 @@ public class RegionTest {
             )
         ))
     );
-  }
-
-  private static Materializer materializer() {
-    return Materializer.matFromSystem(testKit.system().classicSystem());
   }
 }
