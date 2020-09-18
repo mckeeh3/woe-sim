@@ -170,12 +170,12 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       return false;
     }
     if (selectionCommand.delayed) {
-      log().info("rate: delayed command received {}", selectionCommand);
+      //log().info("rate: delayed command received {}", selectionCommand);
       state.delayed = false;
       return false;
     }
     if (state.delayed) {
-      log().info("rate: ignore while delayed {}", selectionCommand);
+      //log().info("rate: ignore while delayed {}", selectionCommand);
       return true;
     }
     final Duration untilDeadline = Duration.between(Instant.now(), selectionCommand.deadline);
@@ -188,7 +188,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (delay.toMillis() < delayMsMin) {
       return false;
     }
-    log().info("rate: delay command {} {}", delay, selectionCommand);
+    //log().info("rate: delay command {} {}", delay, selectionCommand);
     timerScheduler.startSingleTimer(selectionCommand.asDelayed(true), delay);
     state.delayed = true;
     return true;
