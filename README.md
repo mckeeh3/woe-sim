@@ -1,10 +1,21 @@
-# What On Earth Simulator - woe-sim microservice
+# Where on Earth Simulator - woe-sim microservice
 
-TODO
+This microservice simulates geographically distributed IoT devices. This service manages the cretion, state, and deletion of IoT devices.
 
 ### Design notes
 
 TODO
+
+### Environment Specific Instructions
+
+- [Minikube with Yugabyte DB](README-minikube-yugabyte.md)
+
+---
+**Note**
+
+The following documentation is being replaced with environment specific README documents.
+
+---
 
 ### Deploy the WOE Sim Microservice
 

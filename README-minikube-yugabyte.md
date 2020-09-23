@@ -123,15 +123,6 @@ $ mvn clean package docker:build
 [INFO] ------------------------------------------------------------------------
 ~~~
 
-Add the local docker image into MiniKube.
-~~~bash
-$ minikube cache add woe-sim:latest
-$ minikube cache list
-~~~
-~~~              
-woe-sim:latest
-~~~
-
 Create the Kubernetes namespace. The namespace only needs to be created once.
 ~~~bash
 $ kubectl create namespace woe-sim-1
