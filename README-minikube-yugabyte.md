@@ -62,7 +62,7 @@ ycqlsh:woe_simulator> describe tables;
 tag_views  tag_scanning         tag_write_progress
 messages   all_persistence_ids  metadata          
 
-ycqlsh:woe_simulator> 
+ycqlsh:woe_simulator> quit
 ~~~
 
 ### Start Minikube
