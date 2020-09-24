@@ -1,4 +1,4 @@
-# Where on Earth Simulator - woe-sim microservice
+# Where on Earth Simulator (woe-sim) Microservice
 
 This microservice simulates geographically distributed IoT devices. This service manages the cretion, state, and deletion of IoT devices.
 
@@ -6,9 +6,11 @@ This microservice simulates geographically distributed IoT devices. This service
 
 TODO
 
-### Environment Specific Instructions
+### How to Deploy the WoE Simulator Microservice
 
 - [Minikube with Yugabyte DB](README-minikube-yugabyte.md)
+- Gooke Kubernetes Engine with Yugabyte DB (TODO)
+- AWS Elastic Kubernetes Service (TODO)
 
 ---
 **Note**
