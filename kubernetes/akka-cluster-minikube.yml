@@ -62,7 +62,7 @@ spec:
               value: "2"
             - name: cassandra_host_port_1
             # value: "yb-tservers.yb-demo.svc.cluster.local:9042"
-              value: "192.168.7.98:9042"
+              value: "192.168.7.136:9042"
             - name: woe_simulator_http_server_host
               value: "woe-sim-service.woe-sim-1.svc.cluster.local"
             - name: woe_simulator_http_server_port
