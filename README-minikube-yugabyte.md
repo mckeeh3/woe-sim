@@ -159,6 +159,23 @@ woe-sim-bd5bf8ddc-tjtpk   1/1     Running   0          8m28s
 woe-sim-bd5bf8ddc-z8gh5   1/1     Running   0          8m28s
 ~~~
 
+If there are configuration issues, start a `bash` shell in one of the pods using the following command.
+
+~~~bash
+kc exec -it woe-sim-bd5bf8ddc-mbjmv -- /bin/bash
+~~~
+~~~
+root@woe-sim-65db649dc9-4qj8l:/# env | grep woe
+HOSTNAME=woe-sim-65db649dc9-4qj8l
+woe_twin_http_server_port=8080
+NAMESPACE=woe-sim-1
+woe_simulator_http_server_port=8080
+woe_simulator_http_server_host=woe-sim-service.woe-sim-1.svc.cluster.local
+woe_twin_http_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
+root@woe-sim-65db649dc9-4qj8l:/# exit
+exit
+~~~
+
 ### Enable External Access
 
 Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
