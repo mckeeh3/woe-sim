@@ -154,25 +154,27 @@ $ kubectl get pods
 ~~~
 ~~~
 NAME                      READY   STATUS    RESTARTS   AGE
-woe-sim-bd5bf8ddc-mbjmv   1/1     Running   0          8m28s
-woe-sim-bd5bf8ddc-tjtpk   1/1     Running   0          8m28s
-woe-sim-bd5bf8ddc-z8gh5   1/1     Running   0          8m28s
+woe-sim-77dfcc864b-6cvrg   1/1     Running   0          3h10m
+woe-sim-77dfcc864b-trmz7   1/1     Running   0          3h10m
+woe-sim-77dfcc864b-vf78s   1/1     Running   0          3h10m
 ~~~
 
-If there are configuration issues, start a `bash` shell in one of the pods using the following command.
+If there are configuration issues or if you want to check something in a container, start a `bash` shell in one of the pods using the following command. For example, start a `bash` shell on the 3rd pod listed above.
 
 ~~~bash
-kc exec -it woe-sim-bd5bf8ddc-mbjmv -- /bin/bash
+$ kubectl exec -it woe-sim-77dfcc864b-vf78s -- /bin/bash                         
+root@woe-sim-77dfcc864b-vf78s:/#
 ~~~
 ~~~
-root@woe-sim-65db649dc9-4qj8l:/# env | grep woe
-HOSTNAME=woe-sim-65db649dc9-4qj8l
+root@woe-sim-77dfcc864b-vf78s:/# env | grep woe
+HOSTNAME=woe-sim-77dfcc864b-vf78s
 woe_twin_http_server_port=8080
 NAMESPACE=woe-sim-1
 woe_simulator_http_server_port=8080
 woe_simulator_http_server_host=woe-sim-service.woe-sim-1.svc.cluster.local
 woe_twin_http_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
-root@woe-sim-65db649dc9-4qj8l:/# exit
+woe_twin_telemetry_servers=woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081
+root@woe-sim-77dfcc864b-vf78s:/# exit
 exit
 ~~~
 
