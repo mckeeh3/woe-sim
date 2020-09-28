@@ -1,7 +1,8 @@
 
 // https://doc.akka.io/docs/akka-persistence-cassandra/current/journal.html#schema
 
-CREATE KEYSPACE IF NOT EXISTS woe_simulator WITH replication = {'class': 'NetworkTopologyStrategy', '<your_dc_name>' : 3 };
+//CREATE KEYSPACE IF NOT EXISTS woe_simulator WITH replication = {'class': 'NetworkTopologyStrategy', '<your_dc_name>' : 3 };
+CREATE KEYSPACE IF NOT EXISTS woe_simulator WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
 CREATE TABLE IF NOT EXISTS woe_simulator.messages (
   persistence_id text,

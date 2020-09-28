@@ -70,13 +70,13 @@ ycqlsh:woe_simulator> quit
 You may want to allocate more CPU and memory capacity to run the WoW application than the defaults. There are two `minikube` command options available for adjusting the CPU and memory allocation settings.
 
 ~~~bash
-$ minikube start --cpus=C --memory=M
+$ minikube start --driver=virtualbox --cpus=C --memory=M
 ~~~
 
 For example, allocate 4 CPUs and 10 gig of memory.
 
 ~~~bash
-$ minikube start --cpus=4 --memory=10g
+$ minikube start --driver=virtualbox --cpus=4 --memory=10g
 ~~~
 
 ### Build and Deploy to MiniKube
@@ -141,7 +141,7 @@ Context "minikube" modified.
 
 Deploy the Docker images to the Kubernetes cluster.
 ~~~bash
-$ kubectl apply -f kubernetes/akka-cluster.yml
+$ kubectl apply -f kubernetes/akka-cluster-minikube.yml
 ~~~
 ~~~
 deployment.apps/woe-sim created
@@ -175,7 +175,6 @@ woe_simulator_http_server_host=woe-sim-service.woe-sim-1.svc.cluster.local
 woe_twin_http_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
 woe_twin_telemetry_servers=woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081
 root@woe-sim-77dfcc864b-vf78s:/# exit
-exit
 ~~~
 
 ### Enable External Access
@@ -271,3 +270,5 @@ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
     "unreachable": []
 }
 ~~~
+
+Next, deploy the [woe-twin microservice](https://github.com/mckeeh3/woe-twin).
