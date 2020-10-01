@@ -57,6 +57,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         .onCommand(SelectionSad.class, this::onSelectionHappyOrSad)
         .onCommand(PingPartiallySelected.class, this::onPingPartiallySelected)
         .onCommand(PingFullySelected.class, this::onPingFullySelected)
+        .onCommand(Passivate.class, this::onPassivate)
         .build();
   }
 
@@ -69,6 +70,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   @Override
   public Recovery recovery() {
+    log().info("Start entity {}", entityId);
     return Recovery.withSnapshotSelectionCriteria(SnapshotSelectionCriteria.none());
   }
 
@@ -161,6 +163,11 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
         return acceptSelection((pingFullySelected.asSelectionCreate(state.region)));
       }
     }
+    return Effect().none();
+  }
+
+  private Effect<Event, State> onPassivate(State state, Passivate passivate) {
+    log().info("Stop entity {}", entityId);
     return Effect().none();
   }
 
@@ -402,6 +409,10 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     public String toString() {
       return String.format("%s[%s, %s]", getClass().getSimpleName(), action, region);
     }
+  }
+
+  public enum Passivate implements Command {
+    INSTANCE
   }
 
   static final class State implements CborSerializable {

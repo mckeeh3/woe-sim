@@ -75,7 +75,9 @@ public class Main {
             Region.entityTypeKey,
             entityContext ->
                 Region.create(entityContext.getEntityId(), clusterSharding, clients)
-        ).withEntityProps(DispatcherSelector.fromConfig("woe.twin.region-entity-dispatcher"))
+        )
+        .withEntityProps(DispatcherSelector.fromConfig("woe.twin.region-entity-dispatcher"))
+        .withStopMessage(Region.Passivate.INSTANCE)
     );
   }
 
