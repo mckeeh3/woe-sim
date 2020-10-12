@@ -1,6 +1,6 @@
 # Where on Earth Simulator (woe-sim) Microservice
 
-This microservice simulates geographically distributed IoT devices. This service manages the cretion, state, and deletion of IoT devices.
+This microservice simulates geographically distributed IoT devices. This service manages the creation, state, and deletion of IoT devices.
 
 ### Design notes
 
