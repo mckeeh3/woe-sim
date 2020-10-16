@@ -101,7 +101,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (state.doesCommandRegionOverlapStateRegion(selectionDelete)) {
       if (state.isFullySelected()) {
         return acceptSelection(selectionDelete);
-      } else if (state.isFullSelection(selectionDelete) & state.isPartiallySelected()) {
+      } else if (state.isFullSelection(selectionDelete) && state.isPartiallySelected()) {
         return acceptSelection(selectionDelete);
       } else {
         if (state.region.isDevice()) {
