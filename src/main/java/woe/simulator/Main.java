@@ -53,8 +53,8 @@ public class Main {
   }
 
   private static void startClusterBootstrap(ActorSystem<?> actorSystem) {
-    AkkaManagement.get(actorSystem.classicSystem()).start();
-    ClusterBootstrap.get(actorSystem.classicSystem()).start();
+    AkkaManagement.get(actorSystem).start();
+    ClusterBootstrap.get(actorSystem).start();
   }
 
   static void startHttpServer(ActorSystem<?> actorSystem) {
