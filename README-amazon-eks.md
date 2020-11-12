@@ -27,3 +27,12 @@ You may also want to create an alias for the `kubectl` command, such as `kc`.
 $ alias kc=kubectl
 ~~~
 
+## Setup Database
+
+Follow the installation instructions in the 
+[README-database-cassandra.md](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-postgres.md)
+or, for a Yugabyte installation in the 
+[README-database-yugrbyte.md](https://github.com/mckeeh3/woe-sim/blob/master/README-minikube-yugabyte.md).
+
+## Deploy the woe-sim microservice
+

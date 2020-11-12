@@ -116,3 +116,42 @@ Use HELP for help.
 ycqlsh> quit
 ~~~
 
+##### Copy CQL DDL commands to the Yugabyte server
+
+From the woe-sim project directory.
+
+~~~bash
+$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp                                                                  
+Defaulting container name to yb-tserver.
+~~~
+
+##### Create the CQL Tables
+
+~~~bash
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
+~~~
+~~~
+Defaulting container name to yb-tserver.
+Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
+Connected to local cluster at yb-tserver-0:9042.
+[ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+~~~
+~~~
+ycqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
+ycqlsh> describe keyspaces;
+~~~
+~~~
+woe_simulator  system_schema  system_auth  system
+~~~
+~~~
+ycqlsh> use woe_simulator;
+ycqlsh:woe_simulator> describe tables;
+~~~
+~~~
+tag_views  tag_scanning         tag_write_progress
+messages   all_persistence_ids  metadata          
+~~~
+~~~
+ycqlsh:woe_simulator>quit
+~~~
