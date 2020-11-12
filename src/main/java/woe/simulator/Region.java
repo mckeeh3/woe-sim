@@ -1,5 +1,13 @@
 package woe.simulator;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+
+import org.slf4j.Logger;
+
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -10,14 +18,11 @@ import akka.cluster.sharding.typed.javadsl.EntityRef;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.SnapshotSelectionCriteria;
-import akka.persistence.typed.javadsl.*;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import org.slf4j.Logger;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
+import akka.persistence.typed.javadsl.CommandHandler;
+import akka.persistence.typed.javadsl.Effect;
+import akka.persistence.typed.javadsl.EventHandler;
+import akka.persistence.typed.javadsl.EventSourcedBehavior;
+import akka.persistence.typed.javadsl.Recovery;
 
 class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.State> {
   final String entityId;
@@ -172,7 +177,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private boolean rateDelayed(State state, SelectionCommand selectionCommand) {
-    final int delayMsMin = 5;
+    final var delayMsMin = 5;
     if (selectionCommand instanceof PingFullySelected || selectionCommand instanceof PingPartiallySelected) {
       return false;
     }
@@ -185,13 +190,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       //log().info("rate: ignore while delayed {}", selectionCommand);
       return true;
     }
-    final Duration untilDeadline = Duration.between(Instant.now(), selectionCommand.deadline);
+    final var untilDeadline = Duration.between(Instant.now(), selectionCommand.deadline);
     if (untilDeadline.toMillis() < delayMsMin) {
       return false;
     }
-    final double untilDeadlinePercent = WorldMap.percentForSelectionAtZoom(selectionCommand.region.zoom, state.region.zoom);
-    final double randomPercent = untilDeadlinePercent * Math.random();
-    final Duration delay = Duration.ofMillis((long) (untilDeadline.toMillis() * randomPercent));
+    final var untilDeadlinePercent = WorldMap.percentForSelectionAtZoom(selectionCommand.region.zoom, state.region.zoom);
+    final var randomPercent = untilDeadlinePercent * Math.random();
+    final var delay = Duration.ofMillis((long) (untilDeadline.toMillis() * randomPercent));
     if (delay.toMillis() < delayMsMin) {
       return false;
     }
@@ -202,7 +207,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private Effect<Event, State> acceptSelection(SelectionCommand selectionCommand) {
-    SelectionAccepted selectionAccepted = new SelectionAccepted(selectionCommand.action, selectionCommand.region);
+    final var selectionAccepted = new SelectionAccepted(selectionCommand.action, selectionCommand.region);
     return Effect().persist(selectionAccepted)
         .thenRun(newState -> eventPersisted(newState, selectionCommand));
   }
@@ -219,7 +224,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private void notifyTwin(State state, SelectionCommand selectionCommand) {
-    final SelectionCommand selectionCommandNotify = selectionCommand.with(state.region);
+    final var selectionCommandNotify = selectionCommand.with(state.region);
     if (!(selectionCommand instanceof PingFullySelected) && !(selectionCommand instanceof PingPartiallySelected)) {
       log().info("Notify twin {}", selectionCommandNotify);
     }
@@ -227,15 +232,14 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   }
 
   private void forwardSelectionToSubRegions(State state, SelectionCommand selectionCommand) {
-    List<WorldMap.Region> subRegions = WorldMap.subRegionsFor(state.region);
+    final var subRegions = WorldMap.subRegionsFor(state.region);
     subRegions.forEach(region -> {
       EntityRef<Command> entityRef = clusterSharding.entityRefFor(entityTypeKey, WorldMap.entityIdOf(region));
       entityRef.tell(selectionCommand.asDelayed(false));
     });
   }
 
-  interface Command extends CborSerializable {
-  }
+  interface Command extends CborSerializable {}
 
   public abstract static class SelectionCommand implements Command {
     enum Action {
@@ -393,8 +397,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     }
   }
 
-  interface Event extends CborSerializable {
-  }
+  interface Event extends CborSerializable {}
 
   public static final class SelectionAccepted implements Event {
     public final SelectionCommand.Action action;

@@ -1,25 +1,27 @@
 package woe.simulator;
 
-import akka.actor.typed.ActorSystem;
-import akka.actor.typed.Behavior;
-import akka.actor.typed.javadsl.*;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.cluster.typed.ClusterSingleton;
-import akka.cluster.typed.SingletonActor;
+import static woe.simulator.WorldMap.entityIdOf;
+import static woe.simulator.WorldMap.regionForZoom0;
 
 import java.time.Duration;
 import java.time.Instant;
 
-import static woe.simulator.WorldMap.entityIdOf;
-import static woe.simulator.WorldMap.regionForZoom0;
+import akka.actor.typed.ActorSystem;
+import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.AbstractBehavior;
+import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.javadsl.TimerScheduler;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.cluster.typed.ClusterSingleton;
+import akka.cluster.typed.SingletonActor;
 
 class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
   private final ClusterSharding clusterSharding;
   private final Duration interval;
 
-  interface Command {
-  }
+  interface Command {}
 
   enum Tick implements Command {
     ticktock
@@ -45,16 +47,16 @@ class RegionPinger extends AbstractBehavior<RegionPinger.Command> {
   }
 
   private Behavior<Command> tick() {
-    final WorldMap.Region region = regionForZoom0();
-    final String entityId = entityIdOf(region);
-    final EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
-    final Instant deadline = Instant.now().plus(interval);
+    final var region = regionForZoom0();
+    final var entityId = entityIdOf(region);
+    final var entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
+    final var deadline = Instant.now().plus(interval);
     entityRef.tell(new Region.PingPartiallySelected(region, deadline, false, null));
     return this;
   }
 
   static void start(ActorSystem<?> actorSystem, Duration interval) {
-    final ClusterSingleton clusterSingleton = ClusterSingleton.get(actorSystem);
+    final var clusterSingleton = ClusterSingleton.get(actorSystem);
     clusterSingleton.init(SingletonActor.of(RegionPinger.create(interval), RegionPinger.class.getSimpleName()));
   }
 }

@@ -23,7 +23,7 @@ class GrpcClient implements Client {
   }
 
   private CompletionStage<Telemetry.TelemetryResponse> post(Telemetry.TelemetryRequest telemetryRequest) {
-    final CompletionStage<TelemetryResponseGrpc> telemetryResponseGrpc = twinDeviceServiceClient.telemetry(toTelemetryRequestGrpc(telemetryRequest));
+    final var telemetryResponseGrpc = twinDeviceServiceClient.telemetry(toTelemetryRequestGrpc(telemetryRequest));
     return telemetryResponseGrpc.thenApply(this::toTelemetryResponse);
   }
 

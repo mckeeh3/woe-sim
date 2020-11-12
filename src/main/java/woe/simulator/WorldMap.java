@@ -1,18 +1,17 @@
 package woe.simulator;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.IntStream;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 interface WorldMap {
 
-  int zoomMax = 18;
+  final int zoomMax = 18;
 
   static String entityIdOf(Region region) {
     return String.format("%d:%1.13f:%1.13f:%1.13f:%1.13f", region.zoom,
@@ -20,12 +19,12 @@ interface WorldMap {
   }
 
   static Region regionForEntityId(String entityId) {
-    String[] fields = entityId.split(":");
-    int zoom = Integer.parseInt(fields[0]);
-    double topLeftLat = Double.parseDouble(fields[1]);
-    double topLeftLng = Double.parseDouble(fields[2]);
-    double botRightLat = Double.parseDouble(fields[3]);
-    double botRightLng = Double.parseDouble(fields[4]);
+    final var fields = entityId.split(":");
+    final var zoom = Integer.parseInt(fields[0]);
+    final var topLeftLat = Double.parseDouble(fields[1]);
+    final var topLeftLng = Double.parseDouble(fields[2]);
+    final var botRightLat = Double.parseDouble(fields[3]);
+    final var botRightLng = Double.parseDouble(fields[4]);
     return new WorldMap.Region(zoom, topLeft(topLeftLat, topLeftLng), botRight(botRightLat, botRightLng));
   }
 
@@ -85,28 +84,28 @@ interface WorldMap {
   }
 
   static double percentForSelectionAtZoom(int zoomSelection, int zoomCount) {
-    final double regionsForStack = regionCountForSelectionStack(zoomSelection);
-    final double regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
-    final double regionsForZoom18 = regionCountForSelectionAtZoom(zoomSelection, 18);
+    final var regionsForStack = regionCountForSelectionStack(zoomSelection);
+    final var regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
+    final var regionsForZoom18 = regionCountForSelectionAtZoom(zoomSelection, 18);
     return (regionsForZoom / regionsForStack) / (regionsForZoom18 / regionsForStack);
   }
 
   private static List<Region> subRegionsForZoom0() {
-    List<Region> regions = new ArrayList<>();
+    final var regions = new ArrayList<Region>();
     regions.add(region(1, topLeft(90, -180), botRight(-90, 0)));
     regions.add(region(1, topLeft(90, 0), botRight(-90, 180)));
     return regions;
   }
 
   private static List<Region> subRegionsForZoomX(Region region, int splits) {
-    final double length = (region.topLeft.lat - region.botRight.lat) / splits;
-    List<Region> regions = new ArrayList<>();
+    final var length = (region.topLeft.lat - region.botRight.lat) / splits;
+    final var regions = new ArrayList<Region>();
     if (region.zoom >= zoomMax) {
       return regions;
     }
     IntStream.range(0, splits).forEach(latIndex -> IntStream.range(0, splits).forEach(lngIndex -> {
-      final LatLng topLeft = topLeft(region.topLeft.lat - latIndex * length, region.topLeft.lng + lngIndex * length);
-      final LatLng botRight = botRight(region.topLeft.lat - (latIndex + 1) * length, region.topLeft.lng + (lngIndex + 1) * length);
+      final var topLeft = topLeft(region.topLeft.lat - latIndex * length, region.topLeft.lng + lngIndex * length);
+      final var botRight = botRight(region.topLeft.lat - (latIndex + 1) * length, region.topLeft.lng + (lngIndex + 1) * length);
       regions.add(region(region.zoom + 1, topLeft, botRight));
     }));
     return regions;
@@ -120,8 +119,8 @@ interface WorldMap {
     if (zoom == region.zoom) {
       return region;
     }
-    List<Region> subRegions = subRegionsFor(region);
-    Optional<Region> subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
+    final var subRegions = subRegionsFor(region);
+    final var subRegionOpt = subRegions.stream().filter(r -> r.contains(latLng)).findFirst();
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 

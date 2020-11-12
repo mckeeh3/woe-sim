@@ -1,23 +1,30 @@
 package woe.simulator;
 
-import akka.actor.typed.ActorRef;
-import akka.actor.typed.ActorSystem;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.marshallers.jackson.Jackson;
-import akka.http.javadsl.model.StatusCodes;
-import akka.http.javadsl.server.Route;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
+import static akka.http.javadsl.server.Directives.complete;
+import static akka.http.javadsl.server.Directives.concat;
+import static akka.http.javadsl.server.Directives.entity;
+import static akka.http.javadsl.server.Directives.path;
+import static akka.http.javadsl.server.Directives.post;
+import static woe.simulator.WorldMap.devicesWithin;
+import static woe.simulator.WorldMap.entityIdOf;
+import static woe.simulator.WorldMap.regionForZoom0;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
-import static akka.http.javadsl.server.Directives.*;
-import static woe.simulator.WorldMap.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.slf4j.Logger;
+
+import akka.actor.typed.ActorRef;
+import akka.actor.typed.ActorSystem;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.marshallers.jackson.Jackson;
+import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.Route;
 
 class HttpServer {
   private final ActorSystem<?> actorSystem;
@@ -65,16 +72,16 @@ class HttpServer {
   }
 
   private void submit(SelectionActionRequest selectionActionRequest) {
-    Region.SelectionCommand selectionCommand = selectionActionRequest.asSelectionCommand(replyTo);
-    String entityId = entityIdOf(regionForZoom0());
-    EntityRef<Region.Command> entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
+    final var selectionCommand = selectionActionRequest.asSelectionCommand(replyTo);
+    final var entityId = entityIdOf(regionForZoom0());
+    final var entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
     entityRef.tell(selectionCommand);
     log().info("Selection rate {}, deadline {}", selectionActionRequest.rate, selectionCommand.deadline);
   }
 
   static Duration selectionProcessingDuration(SelectionActionRequest selectionActionRequest) {
-    final int rate = selectionActionRequest.rate;
-    final int deviceCount = devicesWithin(selectionActionRequest.zoom);
+    final var rate = selectionActionRequest.rate;
+    final var deviceCount = devicesWithin(selectionActionRequest.zoom);
     return Duration.ofSeconds(deviceCount / rate);
   }
 
@@ -114,9 +121,9 @@ class HttpServer {
     }
 
     Region.SelectionCommand asSelectionCommand(ActorRef<Region.Command> replyTo) {
-      WorldMap.Region region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
-      final Instant deadline = selectionProcessingDeadline(this);
-      final boolean delayed = false;
+      final var region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
+      final var deadline = selectionProcessingDeadline(this);
+      final var delayed = false;
 
       switch (action) {
         case "create":

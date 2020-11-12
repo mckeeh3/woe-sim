@@ -27,7 +27,7 @@ class Clients {
   }
 
   static List<Client> configuredClients(ActorSystem<?> actorSystem) {
-    List<Client> clients = new ArrayList<>();
+    final var clients = new ArrayList<Client>();
 
     clientConfigurationList(actorSystem).forEach(clientConfiguration -> {
       try {
@@ -44,11 +44,11 @@ class Clients {
   }
 
   static List<ClientConfiguration> clientConfigurationList(ActorSystem<?> actorSystem) {
-    final String clientsStr = actorSystem.settings().config().getString("woe.twin.telemetry.clients");
-    final List<String> clients = Arrays.asList(clientsStr.split("\\s*,\\s*"));
-    final List<ClientConfiguration> clientConfigurationList = new ArrayList<>();
+    final var clientsStr = actorSystem.settings().config().getString("woe.twin.telemetry.clients");
+    final var clients = Arrays.asList(clientsStr.split("\\s*,\\s*"));
+    final var clientConfigurationList = new ArrayList<ClientConfiguration>();
     clients.forEach(endpoint -> {
-      final String[] p = endpoint.split(":");
+      final var p = endpoint.split(":");
       if (p.length != 3) {
         throw new RuntimeException(String.format("Illegal telemetry client endpoint syntax '%s', expected 'client-class-name:host:port.", endpoint));
       }

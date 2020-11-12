@@ -19,26 +19,26 @@ class GrpcClientCloudstate implements Client {
   public CompletionStage<Telemetry.TelemetryResponse> post(Region.SelectionCommand selectionCommand) {
     switch (selectionCommand.action) {
       case create:
-        return grpcClient.addDevice(getRegion(getWordwideregion(selectionCommand.region)))
+        return grpcClient.addDevice(getRegion(getWordWideRegion(selectionCommand.region)))
             .thenApply(this::fromState);
       case delete:
-        return grpcClient.deleteDevice(getRegion(getWordwideregion(selectionCommand.region)))
+        return grpcClient.deleteDevice(getRegion(getWordWideRegion(selectionCommand.region)))
             .thenApply(this::fromState);
       case happy:
-        return grpcClient.setDeviceHappy(getRegion(getWordwideregion(selectionCommand.region)))
+        return grpcClient.setDeviceHappy(getRegion(getWordWideRegion(selectionCommand.region)))
             .thenApply(this::fromState);
       case sad:
-        return grpcClient.setDeviceSad(getRegion(getWordwideregion(selectionCommand.region)))
+        return grpcClient.setDeviceSad(getRegion(getWordWideRegion(selectionCommand.region)))
             .thenApply(this::fromState);
       case ping:
-        PingRequest request = PingRequest.newBuilder().setWordwideregion(getWordwideregion(selectionCommand.region)).build();
+        PingRequest request = PingRequest.newBuilder().setWordwideregion(getWordWideRegion(selectionCommand.region)).build();
         return grpcClient.pingDevice(request).thenApply(this::fromPing);
     }
     return null;
   }
 
-  private static String getWordwideregion(WorldMap.Region region) {
-    StringBuilder builder = new StringBuilder();
+  private static String getWordWideRegion(WorldMap.Region region) {
+    final var builder = new StringBuilder();
     builder.append(region.zoom).append("_");
     builder.append(region.botRight.lat).append("_");
     builder.append(region.botRight.lng).append("_");
@@ -52,16 +52,10 @@ class GrpcClientCloudstate implements Client {
   }
 
   private Telemetry.TelemetryResponse fromState(TwinState state) {
-    return new Telemetry.TelemetryResponse(
-        "Request completed",
-        200,
-        null);
+    return new Telemetry.TelemetryResponse("Request completed", 200, null);
   }
 
   private Telemetry.TelemetryResponse fromPing(PingResponse ping) {
-    return new Telemetry.TelemetryResponse(
-        "Request completed",
-        200,
-        null);
+    return new Telemetry.TelemetryResponse("Request completed", 200, null);
   }
 }
