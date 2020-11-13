@@ -35,42 +35,8 @@ yay kubectx
 
 There are a number of database options that you can use When running the demo app from Minikube. Please see the documentation provided that covers a few of those options.
 
-TODO
-
-### Install Yugabyte for use with MiniKube
-
-Follow the [Yugabyte Quick Start](https://docs.yugabyte.com/latest/quick-start/) guide for instrucation on installing on your local system.
-
-### Create Cassandra Tables - Yugabyte
-
-Cd into the directory where you cloned the `woe-sim` repo.
-
-~~~bash
-$ <path-to-yugabyte>/bin/ycqlsh
-
-Connected to local cluster at localhost:9042.
-[ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
-Use HELP for help.
-ycqlsh>
-~~~
-
-Run script to create the required Akka persistence tables.
-
-~~~bash
-ycqlsh> source 'src/main/resources/akka-persistence-journal-create-sim.cql'
-~~~
-
-Verify that the tables have been created.
-
-~~~bash
-ycqlsh> use woe_simulator;
-ycqlsh:woe_simulator> describe tables;
-
-tag_views  tag_scanning         tag_write_progress
-messages   all_persistence_ids  metadata
-
-ycqlsh:woe_simulator> quit
-~~~
+* [Use OSS Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra.md)
+* [Use Yugabyte](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte.md)
 
 ### Start Minikube
 
@@ -112,7 +78,7 @@ eval $(minikube -p minikube docker-env)
 Build the project, which will create a new Docker image.
 
 ~~~bash
-$ mvn clean package docker:build
+$ mvn clean package
 ...
 
 [INFO]
@@ -144,14 +110,18 @@ $ kubectl config set-context --current --namespace=woe-sim-1
 Context "minikube" modified.
 ~~~
 
-Deploy the Docker images to the Kubernetes cluster.
+Deploy the Docker images to the Kubernetes cluster. Select the deployment file for the database environment that you are using.
+
+For Cassandra deployed locally, use deployment file `kubernetes/minikube-cassandra-local.yml`.
 
 ~~~bash
-$ kubectl apply -f kubernetes/akka-cluster-minikube.yml
+$ kubectl apply -f kubernetes/minikube-cassandra-local.yml
 deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
+
+TODO add deployments for Yugabyte local and minikube
 
 Check if the pods are running. This may take a few moments.
 

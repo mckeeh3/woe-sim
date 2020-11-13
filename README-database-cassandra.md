@@ -38,6 +38,64 @@ With Minikube you can use a local Cassandra installation. First,
 
 **Important:** change the `listen_address` setting in the `<install-dir>/conf/conf/cassandra.yaml` configuration file to an IP address that is accessible from within Minikube. This is usually the IP of your local system. Processes running within Minikube cannot access the default localhost that Cassandra is configured to use.
 
+**Important:** change the seed configuration setting. Open the configuration file as described above. Find the `seed_provider` property, then look for `seeds`. Change from localhost to the IP used above.
+
+#### Run Cassandra Locally
+
+**NOTE** Cassandra requires Java 8. The following instructions assume that you are using a later version of Java.
+
+If necessary, deploy Java 8.
+
+Open a terminal window and run the following commands.
+
+~~~bash
+export JAVA_HOME=<path-to-your-java-8-deployment>
+export PATH=$JAVA_HOME/bin:$PATH
+cd <path-to-cassandra>
+./bin/cassandra -f
+~~~
+
+#### Create Tables
+
+Use the following steps to create the required tables.
+
+~~~bash
+cd <woe-sim-directory>/src/main/resources
+~~~
+
+Run the `cqlsh` utility.
+
+~~~bash
+<path-to-cassandra-directory>/bin/cqlsh localhost 9042
+Connected to Test Cluster at localhost:9042.
+[cqlsh 5.0.1 | Cassandra 3.11.8 | CQL spec 3.4.4 | Native protocol v4]
+Use HELP for help.
+cqlsh>
+~~~
+
+Execute the following CQL script to create the tables.
+
+~~~bash
+cqlsh> source 'akka-persistence-journal-create-sim.cql'
+~~~
+
+Verify that the tables were created.
+
+~~~bash
+cqlsh> describe keyspaces;
+
+system_schema  system         system_distributed
+system_auth    woe_simulator  system_traces
+
+cqlsh> use woe_simulator;
+cqlsh:woe_simulator> describe tables;
+
+tag_views  tag_scanning         tag_write_progress
+messages   all_persistence_ids  metadata
+
+cqlsh:woe_simulator> quit
+~~~
+
 ### Other Cassandra Providers
 
 We will update this document as we test with other Cassandra installations.
