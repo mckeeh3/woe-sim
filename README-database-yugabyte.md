@@ -11,45 +11,44 @@ You have two options for how you deploy Yugabyte. You can either do a local depl
 
 Follow the [Yugabyte Quick Start](https://docs.yugabyte.com/latest/quick-start/) guide for instrucation on installing on your local system.
 
-#### Create Cassandra Tables
+### Create Cassandra Tables
 
 Cd into the directory where you cloned the `woe-sim` repo.
 
 ~~~bash
 $ <path-to-yugabyte>/bin/ycqlsh
-~~~
 
-~~~
 Connected to local cluster at localhost:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
-ycqlsh> 
+ycqlsh>
 ~~~
 
 Run script to create the required Akka persistence tables.
 
-~~~
+~~~bash
 ycqlsh> source 'src/main/resources/akka-persistence-journal-create-sim.cql'
 ~~~
 
 Verify that the tables have been created.
 
-~~~
+~~~bash
 ycqlsh> use woe_simulator;
 ycqlsh:woe_simulator> describe tables;
 
 tag_views  tag_scanning         tag_write_progress
-messages   all_persistence_ids  metadata          
+messages   all_persistence_ids  metadata
 
 ycqlsh:woe_simulator> quit
 ~~~
 
 ## Deploy Yugabyte to Kubernetes
 
-Follow the documentation for installing 
+Follow the documentation for installing
 [Yugabyte](https://docs.yugabyte.com/latest/deploy/).
 
 Recommended default deployment changes.
+
 * Deploy with [Helm](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/gke/helm-chart/)
 * Use namespace `yugabyte-db`. `kubectl create namespace yugabyte-db`
 * Specify Kubernetes pod replicas, CPU request and limit when doing the `hrlm install` step.
@@ -62,10 +61,10 @@ resource.tserver.limits.cpu=8
 ~~~
 
 As shown in the Yugabyte documentation, verify the status of the deployment using the following command.
+
 ~~~bash
 $ helm status yugabyte-db -n yugabyte-db
-~~~
-~~~
+
 NAME: yugabyte-db
 LAST DEPLOYED: Mon Jul 27 14:36:03 2020
 NAMESPACE: yugabyte-db
@@ -98,16 +97,16 @@ NOTES:
   kubectl delete pvc --namespace yugabyte-db -l app=yb-tserver
 ~~~
 
-#### Create Cassandra Tables
+### Verify Access to CQL and SQL CLI
 
 Try the following commands to verify access to Cassandra CQL and PostgreSQL
 CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
 
 Cassandra CQL shell
+
 ~~~bash
 $ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
-~~~
-~~~
+
 Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
@@ -116,42 +115,38 @@ Use HELP for help.
 ycqlsh> quit
 ~~~
 
-##### Copy CQL DDL commands to the Yugabyte server
+#### Copy CQL DDL commands to the Yugabyte server
 
 From the woe-sim project directory.
 
 ~~~bash
-$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp                                                                  
+$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp
 Defaulting container name to yb-tserver.
 ~~~
 
 ##### Create the CQL Tables
 
 ~~~bash
-$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0                                                      
-~~~
-~~~
+$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+
 Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
 ~~~
-~~~
+
+~~~bash
 ycqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
 ycqlsh> describe keyspaces;
-~~~
-~~~
+
 woe_simulator  system_schema  system_auth  system
-~~~
-~~~
+
 ycqlsh> use woe_simulator;
 ycqlsh:woe_simulator> describe tables;
-~~~
-~~~
+
 tag_views  tag_scanning         tag_write_progress
-messages   all_persistence_ids  metadata          
-~~~
-~~~
+messages   all_persistence_ids  metadata
+
 ycqlsh:woe_simulator>quit
 ~~~

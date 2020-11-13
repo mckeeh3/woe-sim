@@ -84,9 +84,9 @@ interface WorldMap {
   }
 
   static double percentForSelectionAtZoom(int zoomSelection, int zoomCount) {
-    final var regionsForStack = regionCountForSelectionStack(zoomSelection);
-    final var regionsForZoom = regionCountForSelectionAtZoom(zoomSelection, zoomCount);
-    final var regionsForZoom18 = regionCountForSelectionAtZoom(zoomSelection, 18);
+    final var regionsForStack = (double) regionCountForSelectionStack(zoomSelection);
+    final var regionsForZoom = (double) regionCountForSelectionAtZoom(zoomSelection, zoomCount);
+    final var regionsForZoom18 = (double) regionCountForSelectionAtZoom(zoomSelection, 18);
     return (regionsForZoom / regionsForStack) / (regionsForZoom18 / regionsForStack);
   }
 

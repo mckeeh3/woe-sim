@@ -3,12 +3,12 @@
 
 Follow these instructions for installing and running the woe-sim microservice using Minikube and Yugabyte.
 
-### Prerequisites
+## Prerequisites
 
 Clone the weo-sim Github project.
 
 ~~~bash
-$ git clone https://github.com/mckeeh3/woe-sim.git
+git clone https://github.com/mckeeh3/woe-sim.git
 ~~~
 
 ### Install Minikube and Kubernetes CLI
@@ -20,13 +20,22 @@ See the [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheat
 
 Also, consider installing [kubectx](https://github.com/ahmetb/kubectx), which also includes `kubens`.
 Mac:
+
 ~~~bash
-$ brew install kubectx
+brew install kubectx
 ~~~
+
 Arch Linux:
+
 ~~~bash
-$ yay kubectx
+yay kubectx
 ~~~
+
+### Deploy Cassandra
+
+There are a number of database options that you can use When running the demo app from Minikube. Please see the documentation provided that covers a few of those options.
+
+TODO
 
 ### Install Yugabyte for use with MiniKube
 
@@ -38,29 +47,27 @@ Cd into the directory where you cloned the `woe-sim` repo.
 
 ~~~bash
 $ <path-to-yugabyte>/bin/ycqlsh
-~~~
 
-~~~
 Connected to local cluster at localhost:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
-ycqlsh> 
+ycqlsh>
 ~~~
 
 Run script to create the required Akka persistence tables.
 
-~~~
+~~~bash
 ycqlsh> source 'src/main/resources/akka-persistence-journal-create-sim.cql'
 ~~~
 
 Verify that the tables have been created.
 
-~~~
+~~~bash
 ycqlsh> use woe_simulator;
 ycqlsh:woe_simulator> describe tables;
 
 tag_views  tag_scanning         tag_write_progress
-messages   all_persistence_ids  metadata          
+messages   all_persistence_ids  metadata
 
 ycqlsh:woe_simulator> quit
 ~~~
@@ -70,13 +77,13 @@ ycqlsh:woe_simulator> quit
 You may want to allocate more CPU and memory capacity to run the WoW application than the defaults. There are two `minikube` command options available for adjusting the CPU and memory allocation settings.
 
 ~~~bash
-$ minikube start --driver=virtualbox --cpus=C --memory=M
+minikube start --driver=virtualbox --cpus=C --memory=M
 ~~~
 
 For example, allocate 4 CPUs and 10 gig of memory.
 
 ~~~bash
-$ minikube start --driver=virtualbox --cpus=4 --memory=10g
+minikube start --driver=virtualbox --cpus=4 --memory=10g
 ~~~
 
 ### Build and Deploy to MiniKube
@@ -84,10 +91,9 @@ $ minikube start --driver=virtualbox --cpus=4 --memory=10g
 From the woe-sim project directory.
 
 Before the build, set up the Docker environment variables using the following commands.
+
 ~~~bash
 $ minikube docker-env
-~~~
-~~~
 export DOCKER_TLS_VERIFY="1"
 export DOCKER_HOST="tcp://192.168.99.102:2376"
 export DOCKER_CERT_PATH="/home/hxmc/.minikube/certs"
@@ -96,16 +102,17 @@ export MINIKUBE_ACTIVE_DOCKERD="minikube"
 # To point your shell to minikube's docker-daemon, run:
 # eval $(minikube -p minikube docker-env)
 ~~~
+
 Copy and paster the above `eval` command.
+
 ~~~bash
-$ eval $(minikube -p minikube docker-env)
+eval $(minikube -p minikube docker-env)
 ~~~
 
 Build the project, which will create a new Docker image.
+
 ~~~bash
 $ mvn clean package docker:build
-~~~
-~~~
 ...
 
 [INFO]
@@ -124,35 +131,33 @@ $ mvn clean package docker:build
 ~~~
 
 Create the Kubernetes namespace. The namespace only needs to be created once.
+
 ~~~bash
 $ kubectl create namespace woe-sim-1
-~~~
-~~~
 namespace/woe-sim-1 created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
+
 ~~~bash
 $ kubectl config set-context --current --namespace=woe-sim-1
-~~~
-~~~
 Context "minikube" modified.
 ~~~
 
 Deploy the Docker images to the Kubernetes cluster.
+
 ~~~bash
 $ kubectl apply -f kubernetes/akka-cluster-minikube.yml
-~~~
-~~~
 deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
+
 Check if the pods are running. This may take a few moments.
+
 ~~~bash
-$ kubectl get pods                                          
-~~~
-~~~
+$ kubectl get pods
+
 NAME                      READY   STATUS    RESTARTS   AGE
 woe-sim-77dfcc864b-6cvrg   1/1     Running   0          3h10m
 woe-sim-77dfcc864b-trmz7   1/1     Running   0          3h10m
@@ -162,10 +167,11 @@ woe-sim-77dfcc864b-vf78s   1/1     Running   0          3h10m
 If there are configuration issues or if you want to check something in a container, start a `bash` shell in one of the pods using the following command. For example, start a `bash` shell on the 3rd pod listed above.
 
 ~~~bash
-$ kubectl exec -it woe-sim-77dfcc864b-vf78s -- /bin/bash                         
+$ kubectl exec -it woe-sim-77dfcc864b-vf78s -- /bin/bash
 root@woe-sim-77dfcc864b-vf78s:/#
 ~~~
-~~~
+
+~~~bash
 root@woe-sim-77dfcc864b-vf78s:/# env | grep woe
 HOSTNAME=woe-sim-77dfcc864b-vf78s
 woe_twin_http_server_port=8080
@@ -183,8 +189,6 @@ Create a load balancer to enable access to the WOE Sim microservice HTTP endpoin
 
 ~~~bash
 $ kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
-~~~
-~~~
 service/woe-sim-service exposed
 ~~~
 
@@ -192,8 +196,7 @@ Next, view to external port assignments.
 
 ~~~bash
 $ kubectl get services woe-sim-service
-~~~
-~~~
+
 NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
 woe-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
 ~~~
@@ -203,18 +206,16 @@ Note that in this example, the Kubernetes internal port 8558 external port assig
 For MiniKube deployments, the full URL to access the HTTP endpoint is constructed using the MiniKube IP and the external port.
 
 ~~~bash
-$ minikube ip       
-~~~
-In this example the MiniKube IP is:
-~~~
+minikube ip
 192.168.99.102
 ~~~
+
+In this example the MiniKube IP is: `192.168.99.102`
+
 Try accessing this endpoint using the curl command or from a browser.
+
 ~~~bash
 $ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
-~~~
-~~~
-curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
 *   Trying 192.168.99.102:31809...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
