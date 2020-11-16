@@ -40,6 +40,12 @@ With Minikube you can use a local Cassandra installation. First,
 
 **Important:** change the seed configuration setting. Open the configuration file as described above. Find the `seed_provider` property, then look for `seeds`. Change from localhost to the IP used above.
 
+**Important:** comment out the `rpc_address` line. Open the configuration file as described above. Find the `rpc_address` property, and comment out this line.
+
+~~~bash
+#rpc_address: localhost
+~~~
+
 #### Run Cassandra Locally
 
 **NOTE** Cassandra requires Java 8. The following instructions assume that you are using a later version of Java.

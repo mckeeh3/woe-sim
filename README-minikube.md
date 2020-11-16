@@ -1,5 +1,5 @@
 
-# Minikube Installation and Setup with Yugabyte
+# Minikube Installation and Setup
 
 Follow these instructions for installing and running the woe-sim microservice using Minikube and Yugabyte.
 
@@ -51,6 +51,19 @@ For example, allocate 4 CPUs and 10 gig of memory.
 ~~~bash
 minikube start --driver=virtualbox --cpus=4 --memory=10g
 ~~~
+
+### Adjust application.conf
+
+Edit the `application.conf` file as follows.
+
+~~~bash
+# Uncomment as needed for specific Kubernetes environments
+include "application-datastax-minikube"
+#include "application-datastax-eks"
+#include "application-datastax-gke"
+~~~
+
+Make sure that the line `include "application-datastax-minikube"` is un-commented and the other lines are commented.
 
 ### Build and Deploy to MiniKube
 
