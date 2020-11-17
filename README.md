@@ -1,6 +1,8 @@
 # Where on Earth Simulator (woe-sim) Microservice
 
-This microservice simulates geographically distributed IoT devices. This service manages the creation, state, and deletion of IoT devices.
+This microservice simulates geographically distributed IoT devices. This service simulates the creation, state, and deletion of IoT devices.
+
+Via the map UI provided by the woe-twin microservice, requests to create and delete IoT devices or requests to change the state of existing devices are processed by this microservice. These processed requests are then sent as simulated device telemetry messages to the woe-twin microservice.
 
 ## Installation
 
@@ -8,11 +10,16 @@ How you install this Akka microservice depends on your target environment. There
 
 ### Kubernetes Environments
 
-TODO
+* [Minikube](https://github.com/mckeeh3/woe-sim/blob/master/README-minikube.md)
+* [Amazon EKS](https://github.com/mckeeh3/woe-sim/blob/master/README-amazon-eks.md)
+* [Google GKE](https://github.com/mckeeh3/woe-sim/blob/master/README-google-gke.md)
 
 ### Database Environments
 
-TODO
+* [Cassandra local](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-local.md)
+* [Cassandra Amazon](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-amazon.md)
+* [Yugabyte local](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md)
+* [Yugabyte Kubernetes](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md)
 
 ## Design notes
 
