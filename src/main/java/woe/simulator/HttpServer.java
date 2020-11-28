@@ -121,7 +121,8 @@ class HttpServer {
     }
 
     Region.SelectionCommand asSelectionCommand(ActorRef<Region.Command> replyTo) {
-      final var region = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
+      final var clientRegion = new WorldMap.Region(zoom, WorldMap.topLeft(topLeftLat, topLeftLng), WorldMap.botRight(botRightLat, botRightLng));
+      final var region = WorldMap.alignClientRegion(clientRegion);
       final var deadline = selectionProcessingDeadline(this);
       final var delayed = false;
 

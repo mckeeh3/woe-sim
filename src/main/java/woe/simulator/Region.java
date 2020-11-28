@@ -233,8 +233,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
   private void forwardSelectionToSubRegions(State state, SelectionCommand selectionCommand) {
     final var subRegions = WorldMap.subRegionsFor(state.region);
-    subRegions.forEach(region -> {
-      EntityRef<Command> entityRef = clusterSharding.entityRefFor(entityTypeKey, WorldMap.entityIdOf(region));
+    subRegions.forEach(r -> {
+      EntityRef<Command> entityRef = clusterSharding.entityRefFor(entityTypeKey, WorldMap.entityIdOf(r));
       entityRef.tell(selectionCommand.asDelayed(false));
     });
   }

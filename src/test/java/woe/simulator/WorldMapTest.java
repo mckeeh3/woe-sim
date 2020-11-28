@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -486,6 +487,65 @@ public class WorldMapTest {
     assertTrue(delay.toMillis() > 0);
   }
 
+  @Test
+  public void alignClientRegionZoom18Test1() {
+    final var clientRegion = new WorldMap.Region(18, topLeft(33.762207031, -84.357910156), botRight(33.759765625, -84.355468750));
+    final var region1 = alignClientRegion(clientRegion);
+    final var region2 = alignClientRegion(region1);
+    assertEquals(region1, region2);
+  }
+
+  @Test
+  public void alignClientRegionZoom18Test2() {
+    final var clientRegion = new WorldMap.Region(18, topLeft(33.750000000, -84.360351563), botRight(33.749389648, -84.359741211));
+    final var region1 = alignClientRegion(clientRegion);
+    final var region2 = alignClientRegion(region1);
+    assertEquals(region1, region2);
+  }
+
+  @Test
+  public void selectionOfSingleDevice1() {
+    final var clientRegion = new WorldMap.Region(18, topLeft(33.762207031, -84.357910156), botRight(33.759765625, -84.355468750));
+    final var region = alignClientRegion(clientRegion);
+    var selected = WorldMap.regionForZoom0();
+    while(selected != null && selected.zoom < 18 && selected.contains(region)) {
+      var contains = subRegionsFor(selected).stream().filter(r -> r.contains(region)).collect(Collectors.toList());
+      assertEquals(1, contains.size(), selected.toString());
+      selected = contains.size() == 0 ? null : contains.get(0);
+    }
+    assertNotNull(selected);
+    assertEquals(18, selected.zoom);
+  }
+
+  @Test
+  public void selectionOfSingleDevice2() {
+    final var clientRegion = new WorldMap.Region(18, topLeft(33.750000000, -84.360351563), botRight(33.749389648, -84.359741211));
+    final var region = alignClientRegion(clientRegion);
+    var selected = WorldMap.regionForZoom0();
+    while(selected != null && selected.zoom < 18 && selected.contains(region)) {
+      final var subRegions = subRegionsFor(selected);
+      final var contains = subRegions.stream().filter(r -> r.contains(region) || r.overlaps(region)).collect(Collectors.toList());
+      assertEquals(1, contains.size(), String.format("%s -- %s", region, subRegions));
+      selected = contains.size() == 0 ? null : contains.get(0);
+    }
+    assertNotNull(selected);
+    assertEquals(18, selected.zoom);
+  }
+
+  @Test
+  public void selectionOfSingleDevice3() {
+    final var clientRegion = new WorldMap.Region(18, topLeft(33.737182617, -84.370727539), botRight(33.736572266, -84.370117188));
+    final var region = alignClientRegion(clientRegion);
+    var selected = WorldMap.regionForZoom0();
+    while(selected != null && selected.zoom < 18 && selected.contains(region)) {
+      final var subRegions = subRegionsFor(selected);
+      final var contains = subRegions.stream().filter(r -> r.overlaps(region)).collect(Collectors.toList());
+      assertEquals(1, contains.size(), String.format("%s -- %s", region, subRegions));
+      selected = contains.size() == 0 ? null : contains.get(0);
+    }
+    assertNotNull(selected);
+    assertEquals(18, selected.zoom);
+  }
   @Ignore
   @Test
   public void percentForSelectionAtZoomWorks() {

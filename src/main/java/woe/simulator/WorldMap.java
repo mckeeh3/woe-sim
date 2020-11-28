@@ -124,6 +124,12 @@ interface WorldMap {
     return subRegionOpt.map(subRegion -> regionAtLatLng(zoom, latLng, subRegion)).orElse(null);
   }
 
+  static Region alignClientRegion(Region clientRegion) {
+    final double lat = clientRegion.topLeft.lat - (clientRegion.topLeft.lat - clientRegion.botRight.lat) / 2;
+    final double lng = clientRegion.botRight.lng - (clientRegion.botRight.lng - clientRegion.topLeft.lng) / 2;
+    return regionAtLatLng(clientRegion.zoom, new LatLng(lat, lng));
+  }
+
   class LatLng implements CborSerializable {
     public final double lat;
     public final double lng;
