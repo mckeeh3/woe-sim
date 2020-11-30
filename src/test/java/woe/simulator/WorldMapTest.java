@@ -546,7 +546,7 @@ public class WorldMapTest {
     assertNotNull(selected);
     assertEquals(18, selected.zoom);
   }
-  @Ignore
+  @Ignore("Not a test. Output region percents by zoom.")
   @Test
   public void percentForSelectionAtZoomWorks() {
     System.out.printf("Selection zoom %d, zoom %d, percent %1.3f%n", 16, 18, percentForSelectionAtZoom(16, 18));
@@ -576,8 +576,7 @@ public class WorldMapTest {
     });
   }
 
-  // Not a test. Shows the number of devices created per region at zoom levels 3 through 18.
-  @Ignore
+  @Ignore("Not a test. Shows the number of devices created per region at zoom levels 3 through 18.")
   @Test
   public void calculateIotDevicesSelectedPerZoomLevel() {
     IntStream.range(0, 16).forEach(zoom ->
