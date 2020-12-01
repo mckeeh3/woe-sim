@@ -44,7 +44,7 @@ class HttpServer {
 
   private void start(String host, int port) {
     Http.get(actorSystem).newServerAt(host, port).bind(route());
-    log().info("HTTP Server started on {}:{}", host, "" + port);
+    log().info("HTTP Server started on {}:{}", host, port);
   }
 
   private Route route() {
@@ -76,7 +76,7 @@ class HttpServer {
     final var entityId = entityIdOf(regionForZoom0());
     final var entityRef = clusterSharding.entityRefFor(Region.entityTypeKey, entityId);
     entityRef.tell(selectionCommand);
-    log().info("Selection rate {}, deadline {}", selectionActionRequest.rate, selectionCommand.deadline);
+    log().info("Selection rate {}, deadline {}, {}", selectionActionRequest.rate, selectionCommand.deadline, selectionCommand.region);
   }
 
   static Duration selectionProcessingDuration(SelectionActionRequest selectionActionRequest) {
