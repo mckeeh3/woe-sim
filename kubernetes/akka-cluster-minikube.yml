@@ -63,6 +63,13 @@ spec:
             - name: cassandra_host_port_1
             # value: "yb-tservers.yb-demo.svc.cluster.local:9042"
               value: "192.168.7.136:9042"
+            - name: postgresql_url
+            # value: "jdbc:postgresql://yb-tservers.yb-demo.svc.cluster.local:5433"
+              value: "jdbc:postgresql://192.168.7.136:5432/woe_twin"
+            - name: postgresql_username
+              value: "hxmc"
+            - name: postgresql_password
+              value: ""
             - name: woe_simulator_http_server_host
               value: "woe-sim-service.woe-sim-1.svc.cluster.local"
             - name: woe_simulator_http_server_port

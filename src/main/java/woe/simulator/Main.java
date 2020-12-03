@@ -28,7 +28,7 @@ public class Main {
 
   public static void main(String[] args) {
     ActorSystem<?> actorSystem = ActorSystem.create(Main.create(), "woe-sim");
-    awsCassandraTruststoreHack(actorSystem);
+    awsCassandraTrustStoreHack(actorSystem);
     startClusterBootstrap(actorSystem);
     startHttpServer(actorSystem);
     startRegionClusterSharding(actorSystem);
@@ -37,7 +37,7 @@ public class Main {
 
   // Copies the truststore file to the local container file system.
   // Cassandra code does not read from classpath resource.
-  private static void awsCassandraTruststoreHack(ActorSystem<?> actorSystem) {
+  private static void awsCassandraTrustStoreHack(ActorSystem<?> actorSystem) {
     final var filename = "cassandra-truststore.jks";
     final var inputStream = actorSystem.getClass().getClassLoader().getResourceAsStream(filename);
     final var target = Paths.get(filename);

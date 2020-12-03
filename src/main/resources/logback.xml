@@ -25,10 +25,14 @@
     <logger name="woe.twin.grpc" level="INFO"/>
     <logger name="io.grpc" level="INFO"/>
     <logger name="akka.actor.LocalActorRefProvider.Deserialization" level="INFO"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="slick.basic" level="INFO"/>
+    <logger name="slick.compiler" level="INFO"/>
+    <logger name="slick.jdbc" level="INFO"/>
+    <logger name="slick.util" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>
     </root>
 
 </configuration>
-
