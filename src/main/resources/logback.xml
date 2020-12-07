@@ -21,6 +21,7 @@
     <logger name="akka.remote.artery" level="INFO"/>
     <logger name="akka.io" level="INFO"/>
     <logger name="akka.http" level="INFO"/>
+    <logger name="akka.serialization" level="INFO"/>
     <logger name="woe.simulator.Region" level="INFO"/>
     <logger name="woe.twin.grpc" level="INFO"/>
     <logger name="io.grpc" level="INFO"/>
