@@ -182,12 +182,10 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
       return false;
     }
     if (selectionCommand.delayed) {
-      //log().info("rate: delayed command received {}", selectionCommand);
-      state.delayed = false;
+      state.delayOff();
       return false;
     }
-    if (state.delayed) {
-      //log().info("rate: ignore while delayed {}", selectionCommand);
+    if (state.isDelayed()) {
       return true;
     }
     final var untilDeadline = Duration.between(Instant.now(), selectionCommand.deadline);
@@ -200,9 +198,8 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (delay.toMillis() < delayMsMin) {
       return false;
     }
-    //log().info("rate: delay command {} {}", delay, selectionCommand);
+    state.delayFor(delay);
     timerScheduler.startSingleTimer(selectionCommand.asDelayed(true), delay);
-    state.delayed = true;
     return true;
   }
 
@@ -421,11 +418,13 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
   static final class State implements CborSerializable {
     final WorldMap.Region region;
     Status status;
-    boolean delayed;
+    private boolean delayed;
+    private Instant delayUntil;
 
     State(WorldMap.Region region) {
       this.region = region;
       status = Status.notSelected;
+      delayUntil = Instant.ofEpochMilli(0);
     }
 
     enum Status {
@@ -470,6 +469,23 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
 
     boolean isFullSelection(SelectionCommand selectionCommand) {
       return selectionCommand.region.contains(region);
+    }
+
+    boolean isDelayed() {
+      if (delayed && Instant.now().isAfter(delayUntil)) {
+        delayOff();
+      }
+      return delayed;
+    }
+
+    void delayFor(Duration delay) {
+      delayUntil = Instant.now().plus(delay);
+      delayed = true;
+    }
+
+    void delayOff() {
+      delayUntil = Instant.ofEpochMilli(0);
+      delayed = false;
     }
 
     State selectionAccepted(SelectionAccepted selectionAccepted) {
