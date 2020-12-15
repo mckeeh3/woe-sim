@@ -1,0 +1,69 @@
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "cloudstate/entity_key.proto";
+
+package service;
+
+message ActivateDeviceCommand {
+    string customerLocationId = 1 [(.cloudstate.entity_key) = true];
+    string deviceId = 2;
+}
+
+message AssignRoomCommand {
+    string deviceId = 1 [(.cloudstate.entity_key) = true];
+    string room = 2;
+}
+
+message Device {
+    string deviceId = 1;
+    bool activated = 2;
+    string customerLocationId = 3;
+    string room = 4;
+    bool nightlightOn = 5;
+}
+
+message Devices {
+    repeated Device device = 1;
+}
+
+message GetDevicesCommand {
+    string customerLocationId = 1 [(.cloudstate.entity_key) = true];
+}
+
+message ToggleNightlightCommand {
+    string customerLocationId = 1 [(.cloudstate.entity_key) = true];
+    string deviceId = 2;
+}
+
+service WirelessMeshService {
+    rpc ActivateDevice(ActivateDeviceCommand) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/wirelessmesh/activate-device",
+            body: "*",
+        };
+    }
+
+    rpc AssignRoom(AssignRoomCommand) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/wirelessmesh/assign-room",
+            body: "*",
+        };
+    }
+
+    rpc GetDevice(GetDevicesCommand) returns (Devices) {
+        option (google.api.http) = {
+            get: "/wirelessmesh/get-device",
+            body: "*",
+        };
+    }
+
+    rpc ToggleNightlight(ToggleNightlightCommand) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/wirelessmesh/toggle-nightlight",
+            body: "*",
+        };
+    }
+}
