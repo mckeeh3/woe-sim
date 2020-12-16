@@ -36,7 +36,7 @@ class Clients {
             .newInstance(actorSystem, clientConfiguration.host, clientConfiguration.port));
         actorSystem.log().info("Using telemetry client {}", clientConfiguration);
       } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-        throw new RuntimeException(String.format("Invalid client class '%s'.", clientConfiguration), e);
+        throw new ClientsException(String.format("Invalid client class '%s'.", clientConfiguration), e);
       }
     });
 
@@ -50,7 +50,7 @@ class Clients {
     clients.forEach(endpoint -> {
       final var p = endpoint.split(":");
       if (p.length != 3) {
-        throw new RuntimeException(String.format("Illegal telemetry client endpoint syntax '%s', expected 'client-class-name:host:port.", endpoint));
+        throw new ClientsException(String.format("Illegal telemetry client endpoint syntax '%s', expected 'client-class-name:host:port.", endpoint));
       }
       clientConfigurationList.add(new ClientConfiguration(p[0], p[1], Integer.parseInt(p[2])));
     });
@@ -71,6 +71,18 @@ class Clients {
     @Override
     public String toString() {
       return String.format("%s[%s, %s, %d]", getClass().getSimpleName(), name, host, port);
+    }
+  }
+
+  private static class ClientsException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
+    ClientsException(String message) {
+      super(message);
+    }
+
+    ClientsException(String message, Throwable t) {
+      super(message, t);
     }
   }
 }
