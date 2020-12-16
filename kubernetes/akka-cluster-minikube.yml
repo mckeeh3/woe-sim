@@ -79,7 +79,8 @@ spec:
             - name: woe_twin_http_server_port
               value: "8080"
             - name: woe_twin_telemetry_servers
-              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081"
+              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081,
+                      woe.simulator.GrpcClientWirelessMesh:wandering-grass-3249.us-east1.apps.lbcs.io:443"
 
 ---
 kind: Role
