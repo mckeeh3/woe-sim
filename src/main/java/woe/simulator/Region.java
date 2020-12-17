@@ -142,7 +142,7 @@ class Region extends EventSourcedBehavior<Region.Command, Region.Event, Region.S
     if (state.doesCommandRegionOverlapStateRegion(pingPartiallySelected)) {
       if (state.isFullySelected()) {
         if (state.region.isDevice()) {
-          notifyTwin(state, pingPartiallySelected);
+          notifyTwin(state, pingPartiallySelected.asPingFullySelected(state.region));
         } else {
           forwardSelectionToSubRegions(state, pingPartiallySelected.asPingFullySelected(state.region));
         }
