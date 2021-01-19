@@ -10,8 +10,8 @@
     <git.commit.version>${git.commit.time}.${git.commit.id.abbrev}</git.commit.version>
     <java.version>11</java.version>
     <scala.version>2.13</scala.version>
-    <akka.version>2.6.10</akka.version>
-    <akka.http.version>10.2.1</akka.http.version>
+    <akka.version>2.6.11</akka.version>
+    <akka.http.version>10.2.3</akka.http.version>
     <akka.management.version>1.0.9</akka.management.version>
     <akka.persistence.cassandra.version>1.0.4</akka.persistence.cassandra.version>
     <akka.persistence.jdbc.version>4.0.0</akka.persistence.jdbc.version>
