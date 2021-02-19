@@ -20,7 +20,6 @@
     <grpc.version>1.35.0</grpc.version>
     <postgresql.version>42.2.18</postgresql.version>
     <yugabyte.driver.version>3.8.0-yb-5</yugabyte.driver.version>
-    <jackson.version>2.10.3</jackson.version>
     <logback.version>1.2.3</logback.version>
     <junit.jupiter.version>5.5.2</junit.jupiter.version>
     <junit.platform.version>1.5.2</junit.platform.version>
@@ -189,18 +188,6 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-testing</artifactId>
       <version>${grpc.version}</version>
-    </dependency>
-
-    <!-- Json -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
 
     <dependency>
