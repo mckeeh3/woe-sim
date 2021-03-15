@@ -37,15 +37,15 @@ spec:
           ports:
             # akka-management and bootstrap
             # This needs to be first. AWS EKS uses this for load balancer health check.
+            - name: http
+              containerPort: 8080
+              protocol: TCP
             - name: management
               containerPort: 8558
               protocol: TCP
             # akka remoting
             - name: remoting
               containerPort: 2552
-              protocol: TCP
-            - name: http
-              containerPort: 8080
               protocol: TCP
           resources:
             limits:
