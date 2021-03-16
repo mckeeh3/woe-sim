@@ -20,6 +20,7 @@ spec:
         - name: woe-sim
           image: mckeeh3/woe-sim
           imagePullPolicy: Always
+          javaOptions: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
           readinessProbe:
             httpGet:
               path: /ready

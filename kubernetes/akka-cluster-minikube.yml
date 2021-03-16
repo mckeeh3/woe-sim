@@ -21,6 +21,7 @@ spec:
           image: woe-sim:latest
           # remove for real clusters, useful for minikube
           imagePullPolicy: Never
+          javaOptions: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
           readinessProbe:
             httpGet:
               path: /ready
