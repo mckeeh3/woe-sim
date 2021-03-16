@@ -30,14 +30,14 @@ namespace is created and these two key/values are defined using [Kubernetes secr
 Create the Kubernetes namespace. The namespace only needs to be created once.
 
 ~~~bash
-$ kubectl create namespace woe-sim-1
-namespace/woe-sim-1 created
+$ kubectl create namespace woe-sim
+namespace/woe-sim created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 
 ~~~bash
-$ kubectl config set-context --current --namespace=woe-sim-1
+$ kubectl config set-context --current --namespace=woe-sim
 Context "minikube" modified.
 ~~~
 
@@ -47,4 +47,3 @@ Once the namespace is defined and set as the current context, create the secrets
 $ kubectl create secret generic aws-access-key --from-literal=AWS_ACCESS_KEY='ZXCV.....' --from-literal=AWS_SECRET_ACCESS_KEY='VCXZ....'
 secret/aws-access-key created
 ~~~
-

@@ -112,14 +112,14 @@ $ mvn clean package
 Create the Kubernetes namespace. The namespace only needs to be created once.
 
 ~~~bash
-$ kubectl create namespace woe-sim-1
-namespace/woe-sim-1 created
+$ kubectl create namespace woe-sim
+namespace/woe-sim created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 
 ~~~bash
-$ kubectl config set-context --current --namespace=woe-sim-1
+$ kubectl config set-context --current --namespace=woe-sim
 Context "minikube" modified.
 ~~~
 
@@ -158,9 +158,9 @@ root@woe-sim-77dfcc864b-vf78s:/#
 root@woe-sim-77dfcc864b-vf78s:/# env | grep woe
 HOSTNAME=woe-sim-77dfcc864b-vf78s
 woe_twin_http_server_port=8080
-NAMESPACE=woe-sim-1
+NAMESPACE=woe-sim
 woe_simulator_http_server_port=8080
-woe_simulator_http_server_host=woe-sim-service.woe-sim-1.svc.cluster.local
+woe_simulator_http_server_host=woe-sim-service.woe-sim.svc.cluster.local
 woe_twin_http_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
 woe_twin_telemetry_servers=woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081
 root@woe-sim-77dfcc864b-vf78s:/# exit

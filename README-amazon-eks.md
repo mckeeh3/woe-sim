@@ -135,13 +135,13 @@ $ mvn clean package
 The namespace only needs to be created once.
 
 ~~~bash
-$ kubectl create namespace woe-sim-1
-namespace/woe-sim-1 created
+$ kubectl create namespace woe-sim
+namespace/woe-sim created
 ~~~
 
 ### Set this namespace as the default for subsequent `kubectl` commands
 
 ~~~bash
-$ kubectl config set-context --current --namespace=woe-sim-1
+$ kubectl config set-context --current --namespace=woe-sim
 Context "minikube" modified.
 ~~~

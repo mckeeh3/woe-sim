@@ -4,7 +4,7 @@ metadata:
   labels:
     app: woe-sim
   name: woe-sim
-  namespace: woe-sim-1
+  namespace: woe-sim
 spec:
   replicas: 3
   selector:
@@ -71,7 +71,7 @@ spec:
             - name: postgresql_password
               value: ""
             - name: woe_simulator_http_server_host
-              value: "woe-sim-service.woe-sim-1.svc.cluster.local"
+              value: "woe-sim-service.woe-sim.svc.cluster.local"
             - name: woe_simulator_http_server_port
               value: "8080"
             - name: woe_twin_http_server_host
@@ -87,7 +87,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
-  namespace: woe-sim-1
+  namespace: woe-sim
 rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["pods"]
@@ -97,12 +97,12 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: read-pods
-  namespace: woe-sim-1
+  namespace: woe-sim
 subjects:
   # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
   # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
   - kind: User
-    name: system:serviceaccount:woe-sim-1:default
+    name: system:serviceaccount:woe-sim:default
 roleRef:
   kind: Role
   name: pod-reader

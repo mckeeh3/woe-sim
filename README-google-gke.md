@@ -79,14 +79,14 @@ Only listing images in gcr.io/akka-yuga. Use --repository to list images in othe
 Create the Kubernetes namespace. The namespace only needs to be created once.
 
 ~~~bash
-$ kubectl create namespace woe-sim-1
-namespace/woe-sim-1 created
+$ kubectl create namespace woe-sim
+namespace/woe-sim created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 
 ~~~bash
-$ kubectl config set-context --current --namespace=woe-sim-1
+$ kubectl config set-context --current --namespace=woe-sim
 Context "gke_akka-yuga_us-central1-c_yugadb" modified.
 ~~~
 
@@ -113,8 +113,8 @@ Open a shell on one of the pods.
 
 ~~~bash
 $ kubectl exec -it woe-sim-5d4949bf95-7z8mw -- /bin/bash
-root@woe-sim-5d4949bf95-7z8mw:/# ll maven/woe-sim-1.0-SNAPSHOT.jar
--rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/woe-sim-1.0-SNAPSHOT.jar
+root@woe-sim-5d4949bf95-7z8mw:/# ll maven/woe-sim.0-SNAPSHOT.jar
+-rw-r--r-- 1 root root 301036 Jun 29 18:08 maven/woe-sim.0-SNAPSHOT.jar
 root@woe-sim-5d4949bf95-7z8mw:/# exit
 exit
 ~~~
