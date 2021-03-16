@@ -60,7 +60,7 @@ The WoE Simulator service uses an event log with [Akka Persistence](https://doc.
 Follow the installation instructions in the
 [README-database-cassandra-amazon.md](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-amazon.md)
 or, for a Yugabyte installation in the
-[README-database-yugrbyte-kubernetes.md](https://github.com/mckeeh3/woe-sim/blob/master/README-minikube-yugabyte-kubernetes.md).
+[README-database-yugabyte-kubernetes.md](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md).
 
 TODO
 
