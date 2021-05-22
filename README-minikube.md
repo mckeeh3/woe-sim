@@ -154,6 +154,9 @@ Before the build, set up the Docker environment variables using the following co
 
 ~~~bash
 minikube docker-env
+~~~
+
+~~~text
 export DOCKER_TLS_VERIFY="1"
 export DOCKER_HOST="tcp://192.168.99.102:2376"
 export DOCKER_CERT_PATH="/home/hxmc/.minikube/certs"
@@ -172,7 +175,10 @@ eval $(minikube -p minikube docker-env)
 Build the project, which will create a new Docker image.
 
 ~~~bash
-$ mvn clean package
+mvn clean package
+~~~
+
+~~~text
 ...
 
 [INFO]
@@ -194,6 +200,9 @@ Create the Kubernetes namespace. The namespace only needs to be created once.
 
 ~~~bash
 kubectl create namespace woe-sim
+~~~
+
+~~~text
 namespace/woe-sim created
 ~~~
 
@@ -201,6 +210,9 @@ Set this namespace as the default for subsequent `kubectl` commands.
 
 ~~~bash
 kubectl config set-context --current --namespace=woe-sim
+~~~
+
+~~~text
 Context "minikube" modified.
 ~~~
 
@@ -209,7 +221,7 @@ Deploy the Docker images to the Kubernetes cluster. Select the deployment file f
 For Cassandra deployed locally, use deployment file `kubernetes/minikube-cassandra-local.yml`.
 
 ~~~bash
-kubectl apply -f kubernetes/minikube-cassandra-local.yml
+kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml
 ~~~
 
 ~~~text
@@ -217,8 +229,6 @@ deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
-
-TODO add deployments for Yugabyte local and minikube
 
 Check if the pods are running. This may take a few moments.
 
