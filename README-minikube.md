@@ -181,18 +181,16 @@ mvn clean package
 ~~~text
 ...
 
-[INFO]
-[INFO] --- docker-maven-plugin:0.26.1:build (default-cli) @ woe-sim ---
 [INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
 [INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
-[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 405 milliseconds
-[INFO] DOCKER> [woe-sim:latest]: Built image sha256:ebe14
-[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20200617-143425.6247cf9
+[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 3 seconds
+[INFO] DOCKER> [woe-sim:latest]: Built image sha256:d3084
+[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20210522-145455.75b0f1a
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  01:30 min
-[INFO] Finished at: 2020-06-19T09:25:15-04:00
+[INFO] Total time:  36.566 s
+[INFO] Finished at: 2021-05-22T14:59:56-04:00
 [INFO] ------------------------------------------------------------------------
 ~~~
 
