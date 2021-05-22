@@ -126,7 +126,7 @@ cassandra-client   1/1     Running   0          10m
 kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql cassandra/cassandra-client:/tmp
 ~~~
 
-From the terminal runnig `cqlsh` run the following commands.
+From the terminal running `cqlsh` run the following commands.
 
 ~~~bash
 cassandra@cqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
