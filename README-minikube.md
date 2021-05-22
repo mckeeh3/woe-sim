@@ -130,19 +130,21 @@ See the instructions for deploying to Kubernetes either
 [Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-cassandra-kubernetes.md) or
 [PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-postgresql-kubernetes.md).
 
-
 ### Adjust application.conf
 
-Edit the `application.conf` file as follows. Select the database configuration for the specific Akka Persistence event journal database.
+Edit the `application.conf` file as follows. Add the database configuration for the specific Akka Persistence event journal database.
 
-~~~bash
-# Uncomment as needed for specific Kubernetes environments
-include "application-datastax-minikube"
-#include "application-datastax-eks"
-#include "application-datastax-gke"
+For Cassandra, add the following line.
+
+~~~text
+include "application-helm-cassandra"
 ~~~
 
-Make sure that the line `include "application-datastax-minikube"` is un-commented and the other lines are commented.
+For PostgreSQL, add the following line.
+
+~~~text
+include "application-helm-postgresql"
+~~~
 
 ### Build and Deploy to MiniKube
 
@@ -151,7 +153,7 @@ From the woe-sim project directory.
 Before the build, set up the Docker environment variables using the following commands.
 
 ~~~bash
-$ minikube docker-env
+minikube docker-env
 export DOCKER_TLS_VERIFY="1"
 export DOCKER_HOST="tcp://192.168.99.102:2376"
 export DOCKER_CERT_PATH="/home/hxmc/.minikube/certs"
@@ -191,14 +193,14 @@ $ mvn clean package
 Create the Kubernetes namespace. The namespace only needs to be created once.
 
 ~~~bash
-$ kubectl create namespace woe-sim
+kubectl create namespace woe-sim
 namespace/woe-sim created
 ~~~
 
 Set this namespace as the default for subsequent `kubectl` commands.
 
 ~~~bash
-$ kubectl config set-context --current --namespace=woe-sim
+kubectl config set-context --current --namespace=woe-sim
 Context "minikube" modified.
 ~~~
 
@@ -207,7 +209,10 @@ Deploy the Docker images to the Kubernetes cluster. Select the deployment file f
 For Cassandra deployed locally, use deployment file `kubernetes/minikube-cassandra-local.yml`.
 
 ~~~bash
-$ kubectl apply -f kubernetes/minikube-cassandra-local.yml
+kubectl apply -f kubernetes/minikube-cassandra-local.yml
+~~~
+
+~~~text
 deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
@@ -218,8 +223,10 @@ TODO add deployments for Yugabyte local and minikube
 Check if the pods are running. This may take a few moments.
 
 ~~~bash
-$ kubectl get pods
+kubectl get pods
+~~~
 
+~~~text
 NAME                      READY   STATUS    RESTARTS   AGE
 woe-sim-77dfcc864b-6cvrg   1/1     Running   0          3h10m
 woe-sim-77dfcc864b-trmz7   1/1     Running   0          3h10m
@@ -229,11 +236,10 @@ woe-sim-77dfcc864b-vf78s   1/1     Running   0          3h10m
 If there are configuration issues or if you want to check something in a container, start a `bash` shell in one of the pods using the following command. For example, start a `bash` shell on the 3rd pod listed above.
 
 ~~~bash
-$ kubectl exec -it woe-sim-77dfcc864b-vf78s -- /bin/bash
-root@woe-sim-77dfcc864b-vf78s:/#
+kubectl exec -it woe-sim-77dfcc864b-vf78s -- /bin/bash
 ~~~
 
-~~~bash
+~~~text
 root@woe-sim-77dfcc864b-vf78s:/# env | grep woe
 HOSTNAME=woe-sim-77dfcc864b-vf78s
 woe_twin_http_server_port=8080
@@ -250,15 +256,20 @@ root@woe-sim-77dfcc864b-vf78s:/# exit
 Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
 
 ~~~bash
-$ kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
+kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
+~~~
+
+~~~text
 service/woe-sim-service exposed
 ~~~
 
 Next, view to external port assignments.
 
 ~~~bash
-$ kubectl get services woe-sim-service
+kubectl get services woe-sim-service
+~~~
 
+~~~text
 NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
 woe-sim-service   LoadBalancer   10.107.51.103   <pending>     2552:32361/TCP,8558:31809/TCP,8080:30968/TCP   108s
 ~~~
@@ -269,6 +280,9 @@ For MiniKube deployments, the full URL to access the HTTP endpoint is constructe
 
 ~~~bash
 minikube ip
+~~~
+
+~~~text
 192.168.99.102
 ~~~
 
@@ -277,7 +291,10 @@ In this example the MiniKube IP is: `192.168.99.102`
 Try accessing this endpoint using the curl command or from a browser.
 
 ~~~bash
-$ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
+curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
+~~~
+
+~~~text
 *   Trying 192.168.99.102:31809...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed

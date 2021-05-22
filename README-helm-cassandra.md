@@ -100,7 +100,7 @@ export CASSANDRA_PASSWORD=$(kubectl get secret --namespace "cassandra" cassandra
 Create a secret that contains the Cassandra username, password, and JDBC URL.
 
 ~~~bash
-kubectl create secret generic cassandra-env \
+kubectl create secret -n woe-sim generic cassandra-env \
 --from-literal=cassandra_username=cassandra \
 --from-literal=cassandra_password=$CASSANDRA_PASSWORD \
 --from-literal=cassandra_host_port=cassandra.cassandra.svc.cluster.local:9042

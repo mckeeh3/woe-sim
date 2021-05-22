@@ -127,5 +127,5 @@ kubectl create namespace woe-sim
 ## Deploy either Cassandra or PostgreSQL database
 
 See the instructions for deploying to Kubernetes either
-[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-cassandra-kubernetes.md) or
-[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-postgresql-kubernetes.md).
+[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-cassandra.md) or
+[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-postgresql.md).

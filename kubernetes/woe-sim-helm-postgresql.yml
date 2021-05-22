@@ -19,7 +19,6 @@ spec:
       containers:
         - name: woe-sim
           image: woe-sim:latest
-          # remove for real clusters, useful for minikube
           imagePullPolicy: Never
           javaOptions: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
           readinessProbe:
@@ -61,26 +60,22 @@ spec:
                   fieldPath: metadata.namespace
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
-            - name: cassandra_host_port_1
-            # value: "yb-tservers.yb-demo.svc.cluster.local:9042"
-              value: "192.168.7.136:9042"
             - name: postgresql_url
-            # value: "jdbc:postgresql://yb-tservers.yb-demo.svc.cluster.local:5433"
-              value: "jdbc:postgresql://192.168.7.136:5432/woe_twin"
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: portgresql_url } }
             - name: postgresql_username
-              value: "hxmc"
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: portgresql_username } }
             - name: postgresql_password
-              value: ""
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: portgresql_password } }
             - name: woe_simulator_http_server_host
               value: "woe-sim-service.woe-sim.svc.cluster.local"
             - name: woe_simulator_http_server_port
               value: "8080"
             - name: woe_twin_http_server_host
-              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+              value: "woe-twin-service.woe-twin.svc.cluster.local"
             - name: woe_twin_http_server_port
               value: "8080"
             - name: woe_twin_telemetry_servers
-              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081"
+              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin.svc.cluster.local:8081"
 
 ---
 kind: Role

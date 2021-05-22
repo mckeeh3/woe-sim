@@ -90,7 +90,7 @@ export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgresql postgresql 
 Create a secret that contains the PostgreSQL username, password, and JDBC URL.
 
 ~~~bash
-kubectl create secret generic postgresql-env \
+kubectl create secret -n woe-sim generic postgresql-env \
 --from-literal=postgresql_username=postgres \
 --from-literal=postgresql_password=$POSTGRES_PASSWORD \
 --from-literal=postgresql_url=jdbc:postgresql://postgresql.postgresql.svc.cluster.local:5432/postgres
