@@ -5,11 +5,17 @@ Follow these instructions to deploy Cassandra to a Kubernetes cluster.
 
 ## Prerequisites
 
+Clone the weo-sim Github project.
+
+~~~bash
+git clone https://github.com/mckeeh3/woe-sim.git
+~~~
+
 [Install Helm](https://helm.sh/docs/intro/install/).
 
-### Install Cassandra
+## Install Cassandra using Helm
 
-Install Cassandra using Helm. You can find Cassandra Helm charts at [Artifact Hub](https://artifacthub.io/).
+You can find Cassandra Helm charts at [Artifact Hub](https://artifacthub.io/).
 
 Shown here is the installation of the [Bitnami Cassandra chart](https://artifacthub.io/packages/helm/bitnami/cassandra).
 
@@ -21,13 +27,13 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 "bitnami" has been added to your repositories
 ~~~
 
-Create a `cassandra` namespace.
+### Create a `cassandra` namespace
 
 ~~~bash
 kubectl create namespace cassandra
 ~~~
 
-Install Cassandra into to `cassandra` namespace.
+### Install Cassandra into to `cassandra` namespace
 
 ~~~bash
 helm install -n cassandra cassandra bitnami/cassandra
@@ -79,6 +85,25 @@ Use the following command to show the above output again for reference.
 
 ~~~bash
 helm test -n cassandra cassandra
+~~~
+
+### Create Cassandra environment variable
+
+Create an environment variable that contains the Cassandra password.
+
+~~~bash
+export CASSANDRA_PASSWORD=$(kubectl get secret --namespace "cassandra" cassandra -o jsonpath="{.data.cassandra-password}" | base64 --decode)
+~~~
+
+### Create Cassandra secret
+
+Create a secret that contains the Cassandra username, password, and JDBC URL.
+
+~~~bash
+kubectl create secret generic cassandra-env \
+--from-literal=cassandra_username=cassandra \
+--from-literal=cassandra_password=$CASSANDRA_PASSWORD \
+--from-literal=cassandra_host_port=cassandra.cassandra.svc.cluster.local:9042
 ~~~
 
 ## Create the Akka Persistence Cassandra tables

@@ -5,11 +5,19 @@ Follow these instructions to deploy PostgreSQL to a Kubernetes cluster.
 
 ## Prerequisites
 
+Clone the weo-sim Github project.
+
+~~~bash
+git clone https://github.com/mckeeh3/woe-sim.git
+~~~
+
 [Install Helm](https://helm.sh/docs/intro/install/).
 
-### Install PostgreSQL
+## Install PostgreSQL
 
-Install PostgreSQL using Helm. You can find PostgreSQL Helm charts at [Artifact Hub](https://artifacthub.io/).
+### Install PostgreSQL using Helm
+
+You can find PostgreSQL Helm charts at [Artifact Hub](https://artifacthub.io/).
 
 Shown here is the installation of the [Bitnami PostgreSQL chart](https://artifacthub.io/packages/helm/bitnami/postgresql).
 
@@ -21,13 +29,13 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 "bitnami" has been added to your repositories
 ~~~
 
-Create a `postgresql` namespace.
+### Create a `postgresql` namespace
 
 ~~~bash
 kubectl create namespace postgresql
 ~~~
 
-Install PostgreSQL into to `postgresql` namespace.
+### Install PostgreSQL into to `postgresql` namespace
 
 ~~~bash
 helm install -n postgresql postgresql bitnami/postgresql
@@ -69,13 +77,26 @@ Use the following command to show the above output again for reference.
 helm test -n postgresql postgresql
 ~~~
 
-## Create the Akka Persistence PostgreSQL tables
+### Create PostgreSQL environment variable
 
 Create an environment variable that contains the PostgreSQL password.
 
 ~~~bash
 export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgresql postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
 ~~~
+
+### Create PostgreSQL secret
+
+Create a secret that contains the PostgreSQL username, password, and JDBC URL.
+
+~~~bash
+kubectl create secret generic postgresql-env \
+--from-literal=postgresql_username=postgres \
+--from-literal=postgresql_password=$POSTGRES_PASSWORD \
+--from-literal=postgresql_url=jdbc:postgresql://postgresql.postgresql.svc.cluster.local:5432/postgres
+~~~
+
+## Create the Akka Persistence PostgreSQL tables
 
 Run a PostgreSQL pod that can be used to create the Akka Persistence tables.
 

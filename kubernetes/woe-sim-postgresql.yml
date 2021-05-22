@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: woe-sim
+  name: woe-sim
+  namespace: woe-sim
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: woe-sim
+  template:
+    metadata:
+      labels:
+        app: woe-sim
+        actorSystemName: woe-sim
+    spec:
+      containers:
+        - name: woe-sim
+          image: woe-sim:latest
+          # remove for real clusters, useful for minikube
+          imagePullPolicy: Never
+          javaOptions: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 20
+          ports:
+            # akka remoting
+            - name: remoting
+              containerPort: 2552
+              protocol: TCP
+            # akka-management and bootstrap
+            - name: management
+              containerPort: 8558
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              cpu: 1Gi
+              memory: 1Gi
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "2"
+            - name: cassandra_host_port_1
+            # value: "yb-tservers.yb-demo.svc.cluster.local:9042"
+              value: "192.168.7.136:9042"
+            - name: postgresql_url
+            # value: "jdbc:postgresql://yb-tservers.yb-demo.svc.cluster.local:5433"
+              value: "jdbc:postgresql://192.168.7.136:5432/woe_twin"
+            - name: postgresql_username
+              value: "hxmc"
+            - name: postgresql_password
+              value: ""
+            - name: woe_simulator_http_server_host
+              value: "woe-sim-service.woe-sim.svc.cluster.local"
+            - name: woe_simulator_http_server_port
+              value: "8080"
+            - name: woe_twin_http_server_host
+              value: "woe-twin-service.woe-twin-1.svc.cluster.local"
+            - name: woe_twin_http_server_port
+              value: "8080"
+            - name: woe_twin_telemetry_servers
+              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081"
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+  namespace: woe-sim
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods"]
+    verbs: ["get", "watch", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: woe-sim
+subjects:
+  # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
+  # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+  - kind: User
+    name: system:serviceaccount:woe-sim:default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io

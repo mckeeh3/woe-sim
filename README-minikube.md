@@ -11,7 +11,7 @@ Clone the weo-sim Github project.
 git clone https://github.com/mckeeh3/woe-sim.git
 ~~~
 
-### Install Kubernetes CLI
+## Install Kubernetes CLI
 
 Follow the instructions in the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/#kubectl) new tab to install `kubectl`.
 
@@ -32,7 +32,7 @@ Arch Linux:
 yay kubectx
 ~~~
 
-### Install Minikube
+## Install Minikube
 
 Follow the [instructions](https://kubernetes.io/docs/tasks/tools/install-minikube/) for installing Minikube.
 
@@ -118,9 +118,22 @@ NAMESPACE     NAME                                DESIRED   CURRENT   READY   AG
 kube-system   replicaset.apps/coredns-74ff55c5b   1         1         0       20s
 ~~~
 
+### Create the `woe-sim` namespace
+
+~~~bash
+kubectl create namespace woe-sim
+~~~
+
+## Deploy either Cassandra or PostgreSQL database
+
+See the instructions for deploying to Kubernetes either
+[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-cassandra-kubernetes.md) or
+[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-postgresql-kubernetes.md).
+
+
 ### Adjust application.conf
 
-Edit the `application.conf` file as follows.
+Edit the `application.conf` file as follows. Select the database configuration for the specific Akka Persistence event journal database.
 
 ~~~bash
 # Uncomment as needed for specific Kubernetes environments

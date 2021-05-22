@@ -11,7 +11,7 @@ Clone the weo-sim Github project.
 git clone https://github.com/mckeeh3/woe-sim.git
 ~~~
 
-### Install Kubernetes CLI
+## Install Kubernetes CLI
 
 Follow the instructions in the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/#kubectl) new tab to install `kubectl`.
 
@@ -32,7 +32,7 @@ Arch Linux:
 yay kubectx
 ~~~
 
-### Install `kind` and Kubernetes CLI
+## Install `kind` and Kubernetes CLI
 
 Follow the [instructions](https://github.com/kubernetes-sigs/kind#installation-and-usage) for installing kind.
 [kind](https://kind.sigs.k8s.io/) is a tool for running local Kubernetes clusters using Docker container “nodes”.
@@ -118,7 +118,13 @@ kube-system          replicaset.apps/coredns-74ff55c5b                   2      
 local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1         1         1       2m42s
 ~~~
 
-### Deploy either Cassandra or PostgreSQL database
+### Create the `woe-sim` namespace
+
+~~~bash
+kubectl create namespace woe-sim
+~~~
+
+## Deploy either Cassandra or PostgreSQL database
 
 See the instructions for deploying to Kubernetes either
 [Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-cassandra-kubernetes.md) or
