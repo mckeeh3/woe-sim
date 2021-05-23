@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
         - name: woe-sim
-          image: woe-sim:latest
-          imagePullPolicy: Never
+          image: mckeeh3/woe-sim
+          imagePullPolicy: Always
           readinessProbe:
             httpGet:
               path: /ready
@@ -35,22 +35,22 @@ spec:
             failureThreshold: 5
             initialDelaySeconds: 20
           ports:
-            # akka remoting
-            - name: remoting
-              containerPort: 2552
+            - name: http
+              containerPort: 8080
               protocol: TCP
             # akka-management and bootstrap
             - name: management
               containerPort: 8558
               protocol: TCP
-            - name: http
-              containerPort: 8080
+            # akka remoting
+            - name: remoting
+              containerPort: 2552
               protocol: TCP
           resources:
             limits:
-              memory: 8Gi
+              memory: 4Gi
             requests:
-              cpu: 1Gi
+              cpu: 1
               memory: 1Gi
           env:
             - name: NAMESPACE
@@ -62,11 +62,11 @@ spec:
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
             - name: postgresql_url
-              valueFrom: { secretKeyRef: { name: postgresql-env, key: portgresql_url } }
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_url } }
             - name: postgresql_username
-              valueFrom: { secretKeyRef: { name: postgresql-env, key: portgresql_username } }
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_username } }
             - name: postgresql_password
-              valueFrom: { secretKeyRef: { name: postgresql-env, key: portgresql_password } }
+              valueFrom: { secretKeyRef: { name: postgresql-env, key: postgresql_password } }
             - name: woe_simulator_http_server_host
               value: "woe-sim-service.woe-sim.svc.cluster.local"
             - name: woe_simulator_http_server_port

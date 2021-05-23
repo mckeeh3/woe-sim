@@ -292,13 +292,15 @@
       </plugin>
 
       <plugin>
+        <!-- For latest version see - https://dmp.fabric8.io/ -->
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.26.1</version>
+        <version>0.36.0</version>
         <configuration>
           <images>
             <image>
-              <name>%a</name>
+              <!-- Modify as needed for the target repo. For Docker hub use "your-docker-user"/%a -->
+              <name>mckeeh3/%a</name>
               <build>
                 <from>adoptopenjdk:11-jre-hotspot</from>
                 <tags>
@@ -310,8 +312,8 @@
                   <port>8558</port>
                 </ports>
                 <entryPoint>
-                                    java $JAVA_OPTS -cp '/maven/*' woe.simulator.Main
-                                </entryPoint>
+                  java $JAVA_OPTS -cp '/maven/*' woe.simulator.Main
+                </entryPoint>
                 <assembly>
                   <descriptorRef>artifact-with-dependencies</descriptorRef>
                 </assembly>
