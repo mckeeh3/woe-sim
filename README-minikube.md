@@ -118,17 +118,11 @@ NAMESPACE     NAME                                DESIRED   CURRENT   READY   AG
 kube-system   replicaset.apps/coredns-74ff55c5b   1         1         0       20s
 ~~~
 
-### Create the `woe-sim` namespace
-
-~~~bash
-kubectl create namespace woe-sim
-~~~
-
 ## Deploy either Cassandra or PostgreSQL database
 
 See the instructions for deploying to Kubernetes either
-[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-cassandra-kubernetes.md) or
-[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-postgresql-kubernetes.md).
+[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-cassandra.md) or
+[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-postgresql.md).
 
 ### Adjust application.conf
 
@@ -146,7 +140,7 @@ For PostgreSQL, add the following line.
 include "application-helm-postgresql"
 ~~~
 
-### Build and Deploy to MiniKube
+### Build the Docker image
 
 From the woe-sim project directory.
 
@@ -194,7 +188,9 @@ mvn clean package
 [INFO] ------------------------------------------------------------------------
 ~~~
 
-Create the Kubernetes namespace. The namespace only needs to be created once.
+### Create the Kubernetes namespace
+
+The namespace only needs to be created once.
 
 ~~~bash
 kubectl create namespace woe-sim
@@ -214,9 +210,11 @@ kubectl config set-context --current --namespace=woe-sim
 Context "minikube" modified.
 ~~~
 
-Deploy the Docker images to the Kubernetes cluster. Select the deployment file for the database environment that you are using.
+### Deploy the Docker images to the Kubernetes cluster
 
-For Cassandra deployed locally, use deployment file `kubernetes/minikube-cassandra-local.yml`.
+Select the deployment file for the database environment that you are using.
+
+For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`. For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
 
 ~~~bash
 kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml
@@ -228,7 +226,9 @@ role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
 
-Check if the pods are running. This may take a few moments.
+### Check if the pods are running
+
+This may take a few moments.
 
 ~~~bash
 kubectl get pods

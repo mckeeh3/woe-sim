@@ -118,14 +118,89 @@ kube-system          replicaset.apps/coredns-74ff55c5b                   2      
 local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1         1         1       2m42s
 ~~~
 
-### Create the `woe-sim` namespace
-
-~~~bash
-kubectl create namespace woe-sim
-~~~
-
 ## Deploy either Cassandra or PostgreSQL database
 
 See the instructions for deploying to Kubernetes either
 [Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-cassandra.md) or
 [PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-postgresql.md).
+
+### Adjust application.conf
+
+Edit the `application.conf` file as follows. Add the database configuration for the specific Akka Persistence event journal database.
+
+For Cassandra, add the following line.
+
+~~~text
+include "application-helm-cassandra"
+~~~
+
+For PostgreSQL, add the following line.
+
+~~~text
+include "application-helm-postgresql"
+~~~
+
+### Build the Docker image
+
+From the woe-sim project directory.
+
+Build the project, which will create a new Docker image.
+
+~~~bash
+mvn clean package
+~~~
+
+~~~text
+...
+
+[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
+[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
+[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 3 seconds
+[INFO] DOCKER> [woe-sim:latest]: Built image sha256:d3084
+[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20210522-145455.75b0f1a
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  36.566 s
+[INFO] Finished at: 2021-05-22T14:59:56-04:00
+[INFO] ------------------------------------------------------------------------
+~~~
+
+### Create the Kubernetes namespace
+
+The namespace only needs to be created once.
+
+~~~bash
+kubectl create namespace woe-sim
+~~~
+
+~~~text
+namespace/woe-sim created
+~~~
+
+Set this namespace as the default for subsequent `kubectl` commands.
+
+~~~bash
+kubectl config set-context --current --namespace=woe-sim
+~~~
+
+~~~text
+Context "minikube" modified.
+~~~
+
+### Deploy the Docker images to the Kubernetes cluster
+
+Select the deployment file for the database environment that you are using.
+
+For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`. For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
+
+~~~bash
+kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml
+~~~
+
+~~~text
+deployment.apps/woe-sim created
+role.rbac.authorization.k8s.io/pod-reader created
+rolebinding.rbac.authorization.k8s.io/read-pods created
+~~~
+

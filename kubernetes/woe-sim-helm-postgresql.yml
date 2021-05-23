@@ -20,7 +20,6 @@ spec:
         - name: woe-sim
           image: woe-sim:latest
           imagePullPolicy: Never
-          javaOptions: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
           readinessProbe:
             httpGet:
               path: /ready
@@ -58,6 +57,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
             - name: REQUIRED_CONTACT_POINT_NR
               value: "2"
             - name: postgresql_url
