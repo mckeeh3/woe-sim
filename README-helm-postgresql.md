@@ -143,6 +143,9 @@ Verify that the tables have been created.
 
 ~~~bash
 postgres=# \d
+~~~
+
+~~~text
                          List of relations
  Schema |                Name                |   Type   |  Owner
 --------+------------------------------------+----------+----------
