@@ -140,46 +140,34 @@ For PostgreSQL, add the following line.
 include "application-helm-postgresql"
 ~~~
 
+### Adjust the pom fabric8 plugin for the specific Docker repository
+
+When using Docker hub, add your Docker user to the image name in the pom.
+
+~~~text
+      <plugin>
+        <!-- For latest version see - https://dmp.fabric8.io/ -->
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.36.0</version>
+        <configuration>
+          <images>
+            <image>
+              <!-- Modify as needed for the target repo. For Docker hub use "your-docker-user"/%a -->
+              <name>mckeeh3/%a</name>
+~~~
+
 ### Build the Docker image
 
 From the woe-sim project directory.
 
-Before the build, set up the Docker environment variables using the following commands.
-
 ~~~bash
-minikube docker-env
-~~~
-
-~~~text
-export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://192.168.99.102:2376"
-export DOCKER_CERT_PATH="/home/hxmc/.minikube/certs"
-export MINIKUBE_ACTIVE_DOCKERD="minikube"
-
-# To point your shell to minikube's docker-daemon, run:
-# eval $(minikube -p minikube docker-env)
-~~~
-
-Copy and paster the above `eval` command.
-
-~~~bash
-eval $(minikube -p minikube docker-env)
-~~~
-
-Build the project, which will create a new Docker image.
-
-~~~bash
-mvn clean package
+mvn clean package docker:push
 ~~~
 
 ~~~text
 ...
 
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
-[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 3 seconds
-[INFO] DOCKER> [woe-sim:latest]: Built image sha256:d3084
-[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20210522-145455.75b0f1a
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -254,8 +242,8 @@ woe_twin_http_server_port=8080
 NAMESPACE=woe-sim
 woe_simulator_http_server_port=8080
 woe_simulator_http_server_host=woe-sim-service.woe-sim.svc.cluster.local
-woe_twin_http_server_host=woe-twin-service.woe-twin-1.svc.cluster.local
-woe_twin_telemetry_servers=woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081
+woe_twin_http_server_host=woe-twin-service.woe-twin.svc.cluster.local
+woe_twin_telemetry_servers=woe.simulator.GrpcClient:woe-twin-service.woe-twin.svc.cluster.local:8081
 root@woe-sim-77dfcc864b-vf78s:/# exit
 ~~~
 

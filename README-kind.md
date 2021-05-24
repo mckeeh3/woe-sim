@@ -140,6 +140,23 @@ For PostgreSQL, add the following line.
 include "application-helm-postgresql"
 ~~~
 
+### Adjust the pom fabric8 plugin for the specific Docker repository
+
+When using Docker hub, add your Docker user to the image name in the pom.
+
+~~~text
+      <plugin>
+        <!-- For latest version see - https://dmp.fabric8.io/ -->
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.36.0</version>
+        <configuration>
+          <images>
+            <image>
+              <!-- Modify as needed for the target repo. For Docker hub use "your-docker-user"/%a -->
+              <name>mckeeh3/%a</name>
+~~~
+
 ### Build the Docker image
 
 From the woe-sim project directory.
@@ -147,17 +164,12 @@ From the woe-sim project directory.
 Build the project, which will create a new Docker image.
 
 ~~~bash
-mvn clean package
+mvn clean package docker:push
 ~~~
 
 ~~~text
 ...
 
-[INFO] Copying files to /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/build/maven
-[INFO] Building tar: /home/hxmc/Lightbend/akka-java/woe-sim/target/docker/woe-sim/tmp/docker-build.tar
-[INFO] DOCKER> [woe-sim:latest]: Created docker-build.tar in 3 seconds
-[INFO] DOCKER> [woe-sim:latest]: Built image sha256:d3084
-[INFO] DOCKER> [woe-sim:latest]: Tag with latest,20210522-145455.75b0f1a
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -203,4 +215,3 @@ deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
 ~~~
-
