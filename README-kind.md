@@ -118,6 +118,28 @@ kube-system          replicaset.apps/coredns-74ff55c5b                   2      
 local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1         1         1       2m42s
 ~~~
 
+### Create the Kubernetes namespace
+
+The namespace only needs to be created once.
+
+~~~bash
+kubectl create namespace woe-sim
+~~~
+
+~~~text
+namespace/woe-sim created
+~~~
+
+Set this namespace as the default for subsequent `kubectl` commands.
+
+~~~bash
+kubectl config set-context --current --namespace=woe-sim
+~~~
+
+~~~text
+Context "kind-kind" modified.
+~~~
+
 ## Deploy either Cassandra or PostgreSQL database
 
 See the instructions for deploying to Kubernetes either
@@ -176,28 +198,6 @@ mvn clean package docker:push
 [INFO] Total time:  36.566 s
 [INFO] Finished at: 2021-05-22T14:59:56-04:00
 [INFO] ------------------------------------------------------------------------
-~~~
-
-### Create the Kubernetes namespace
-
-The namespace only needs to be created once.
-
-~~~bash
-kubectl create namespace woe-sim
-~~~
-
-~~~text
-namespace/woe-sim created
-~~~
-
-Set this namespace as the default for subsequent `kubectl` commands.
-
-~~~bash
-kubectl config set-context --current --namespace=woe-sim
-~~~
-
-~~~text
-Context "kind-kind" modified.
 ~~~
 
 ### Deploy the Docker images to the Kubernetes cluster
