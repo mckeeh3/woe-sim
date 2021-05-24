@@ -247,7 +247,7 @@ woe_twin_telemetry_servers=woe.simulator.GrpcClient:woe-twin-service.woe-twin.sv
 root@woe-sim-77dfcc864b-vf78s:/# exit
 ~~~
 
-### Enable External Access
+### Create a Load Balancer to enable external access
 
 Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
 
@@ -284,7 +284,7 @@ minikube ip
 
 In this example the MiniKube IP is: `192.168.99.102`
 
-Try accessing this endpoint using the curl command or from a browser.
+Try accessing this load balancer endpoint using the curl command or from a browser.
 
 ~~~bash
 curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
