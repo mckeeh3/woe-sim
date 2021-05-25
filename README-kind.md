@@ -239,7 +239,7 @@ woe-sim-77dfcc864b-vf78s   1/1     Running   0          3h10m
 
 ### Create a Load Balancer to enable external access
 
-Create a load balancer to enable access to the WOE Sim microservice HTTP endpoint.
+Create a load balancer to enable access to the woe-sim microservice HTTP endpoint.
 
 ~~~bash
 kubectl expose deployment woe-sim --type=LoadBalancer --name=woe-sim-service
