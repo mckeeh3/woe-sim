@@ -202,7 +202,13 @@ mvn clean package docker:push
 
 Select the deployment file for the database environment that you are using.
 
-For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`. For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
+For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`.
+
+~~~bash
+kubectl apply -f kubernetes/woe-sim-helm-cassandra.yml
+~~~
+
+For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
 
 ~~~bash
 kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml

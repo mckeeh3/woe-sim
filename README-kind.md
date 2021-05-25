@@ -204,7 +204,13 @@ mvn clean package docker:push
 
 Select the deployment file for the database environment that you are using.
 
-For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`. For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
+For Cassandra, use file `kubernetes/woe-sim-helm-cassandra.yml`.
+
+~~~bash
+kubectl apply -f kubernetes/woe-sim-helm-cassandra.yml
+~~~
+
+For PostgreSQL, use file `kubernetes/woe-sim-helm-postgresql.yml`.
 
 ~~~bash
 kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml
@@ -214,6 +220,21 @@ kubectl apply -f kubernetes/woe-sim-helm-postgresql.yml
 deployment.apps/woe-sim created
 role.rbac.authorization.k8s.io/pod-reader created
 rolebinding.rbac.authorization.k8s.io/read-pods created
+~~~
+
+### Check if the pods are running
+
+This may take a few moments.
+
+~~~bash
+kubectl get pods
+~~~
+
+~~~text
+NAME                      READY   STATUS    RESTARTS   AGE
+woe-sim-77dfcc864b-6cvrg   1/1     Running   0          3h10m
+woe-sim-77dfcc864b-trmz7   1/1     Running   0          3h10m
+woe-sim-77dfcc864b-vf78s   1/1     Running   0          3h10m
 ~~~
 
 ### Create a Load Balancer to enable external access
