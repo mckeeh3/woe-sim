@@ -129,7 +129,7 @@ kubectl cp src/main/resources/akka-persistence-journal-create-sim.sql postgresql
 From the terminal running the `psql` run the following command.
 
 ~~~bash
-postgres=# \i /tmp/akka-persistence-journal-create-sim.sql
+\i /tmp/akka-persistence-journal-create-sim.sql
 ~~~
 
 ~~~text
@@ -142,7 +142,7 @@ postgres=#
 Verify that the tables have been created.
 
 ~~~bash
-postgres=# \d
+\d
 ~~~
 
 ~~~text
@@ -160,6 +160,9 @@ postgres=#
 Finally, quit the `psql` and exit the shell. This will terminate the `postgresql-client` pod.
 
 ~~~text
-postgres=# \q
+\q
+~~~
+
+~~~
 pod "postgresql-client" deleted
 ~~~
