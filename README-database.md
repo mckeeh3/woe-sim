@@ -1,7 +1,8 @@
 
 # Setup a database
 
-The woe-sim microservice uses Akka Persistence for storing events in a CQRS Event Store. See the Akka Persistence documentation for details.
+The woe-sim microservice uses Akka Persistence for storing events in a CQRS Event Store. See the
+[Akka Persistence](https://doc.akka.io/docs/akka/current/typed/persistence.html) documentation for details.
 
 Provided here are links to instructions for setting up various database in various environments.
 
@@ -9,4 +10,4 @@ Provided here are links to instructions for setting up various database in vario
 deployed to a kubernetes cluster using helm.
 
 [Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-helm-cassandra.md)
-Cassandra deployed to a Kubernetes cluster using helm.
+deployed to a Kubernetes cluster using helm.

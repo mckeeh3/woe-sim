@@ -51,7 +51,7 @@ minikube start --driver=virtualbox --cpus=4 --memory=10g
 ~~~
 
 ~~~text
-😄  minikube v1.19.0 on Arch 
+😄  minikube v1.19.0 on Arch
 🎉  minikube 1.20.0 is available! Download it: https://github.com/kubernetes/minikube/releases/tag/v1.20.0
 💡  To disable this notice, run: 'minikube config set WantUpdateNotification false'
 
