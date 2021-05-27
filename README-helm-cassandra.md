@@ -3,15 +3,9 @@
 
 Follow these instructions to deploy Cassandra to a Kubernetes cluster.
 
-## Prerequisites
+## Install Cassandra
 
-Clone the weo-sim Github project.
-
-~~~bash
-git clone https://github.com/mckeeh3/woe-sim.git
-~~~
-
-[Install Helm](https://helm.sh/docs/intro/install/).
+First, [Install Helm](https://helm.sh/docs/intro/install/).
 
 ## Install Cassandra using Helm
 
