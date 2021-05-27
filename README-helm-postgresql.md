@@ -3,11 +3,11 @@
 
 Follow these instructions to deploy PostgreSQL to a Kubernetes cluster.
 
-
 ## Install PostgreSQL
 
 First, [Install Helm](https://helm.sh/docs/intro/install/).
-### Install PostgreSQL using Helm
+
+## Install PostgreSQL using Helm
 
 You can find PostgreSQL Helm charts at [Artifact Hub](https://artifacthub.io/).
 
