@@ -24,7 +24,7 @@ Arch Linux:
 yay kubectx
 ~~~
 
-## Install `kind` and Kubernetes CLI
+## Install `kind`
 
 Follow the [instructions](https://github.com/kubernetes-sigs/kind#installation-and-usage) for installing kind.
 [kind](https://kind.sigs.k8s.io/) is a tool for running local Kubernetes clusters using Docker container “nodes”.
