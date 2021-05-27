@@ -1,7 +1,7 @@
 
 # Minikube Installation and Setup
 
-Follow these instructions for installing and running the woe-sim microservice using Minikube.
+Follow these instructions for installing and using Minikube.
 
 ## Prerequisites
 

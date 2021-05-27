@@ -3,18 +3,10 @@
 
 Follow these instructions to deploy PostgreSQL to a Kubernetes cluster.
 
-## Prerequisites
-
-Clone the weo-sim Github project.
-
-~~~bash
-git clone https://github.com/mckeeh3/woe-sim.git
-~~~
-
-[Install Helm](https://helm.sh/docs/intro/install/).
 
 ## Install PostgreSQL
 
+First, [Install Helm](https://helm.sh/docs/intro/install/).
 ### Install PostgreSQL using Helm
 
 You can find PostgreSQL Helm charts at [Artifact Hub](https://artifacthub.io/).
@@ -163,6 +155,6 @@ Finally, quit the `psql` and exit the shell. This will terminate the `postgresql
 \q
 ~~~
 
-~~~
+~~~text
 pod "postgresql-client" deleted
 ~~~
