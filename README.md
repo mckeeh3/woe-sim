@@ -48,19 +48,6 @@ See [README-database](https://github.com/mckeeh3/woe-sim/blob/master/README-data
 
 See [README-docker-container-registry](https://github.com/mckeeh3/woe-sim/blob/master/README-docker-container-registry.md) for instructions on setting up a Docker image registry.
 
-~~~text
-      <plugin>
-        <!-- For latest version see - https://dmp.fabric8.io/ -->
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>0.36.0</version>
-        <configuration>
-          <images>
-            <image>
-              <!-- Modify as needed for the target repo. For Docker hub use "your-docker-user"/%a -->
-              <name>mckeeh3/%a</name>
-~~~
-
 ### Build the Docker image
 
 From the woe-sim project directory.
