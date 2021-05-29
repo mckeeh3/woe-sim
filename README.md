@@ -4,24 +4,6 @@ This microservice simulates geographically distributed IoT devices. This service
 
 Via the map UI provided by the woe-twin microservice, requests to create and delete IoT devices or requests to change the state of existing devices are processed by this microservice. These processed requests are then sent as simulated device telemetry messages to the woe-twin microservice.
 
-## Installation
-
-How you install this Akka microservice depends on your target environment. There are environment specific README documents for each of the tested Kubernetes environments. With each deployment you also have to select which database you want to use. There are also README documents for the tested databases.
-
-### Kubernetes Environments
-
-* [Minikube](https://github.com/mckeeh3/woe-sim/blob/master/README-minikube.md)
-* [kind](https://github.com/mckeeh3/woe-sim/blob/master/README-kind.md)
-* [Amazon EKS](https://github.com/mckeeh3/woe-sim/blob/master/README-amazon-eks.md)
-* [Google GKE](https://github.com/mckeeh3/woe-sim/blob/master/README-google-gke.md)
-
-### Database Environments
-
-* [Cassandra local](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-local.md)
-* [Cassandra Amazon](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-amazon.md)
-* [Yugabyte local](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md)
-* [Yugabyte Kubernetes](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md)
-
 ## Deploy the woe-sim microservice
 
 Follow these instructions for installing and running the woe-sim microservice.
@@ -62,9 +44,9 @@ Context "kind-kind" modified.
 
 See [README-database](https://github.com/mckeeh3/woe-sim/blob/master/README-database.md) for instructions on setting up a Cassandra or PostgreSQL database in various environments.
 
-### Adjust the pom fabric8 plugin for the specific Docker repository
+### Setup Docker repository
 
-When using Docker hub, add your Docker user to the image name in the pom.
+See [README-docker-container-registry](https://github.com/mckeeh3/woe-sim/blob/master/README-docker-container-registry.md) for instructions on setting up a Docker image registry.
 
 ~~~text
       <plugin>

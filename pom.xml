@@ -7,6 +7,10 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
+    <!-- When using docker hub, override docker.name in mvn command line -->
+    <!-- mvn clean package docker:push -Ddocker.name=<your-docker-username>/woe-sim -->
+    <!-- mvn clean package docker:push -Ddocker.name=mckeeh3/woe-sim -->
+    <docker.name>woe-sim</docker.name>
     <git.commit.version>${git.commit.time}.${git.commit.id.abbrev}</git.commit.version>
     <java.version>11</java.version>
     <scala.version>2.13</scala.version>
@@ -300,7 +304,7 @@
           <images>
             <image>
               <!-- Modify as needed for the target repo. For Docker hub use "your-docker-user"/%a -->
-              <name>mckeeh3/%a</name>
+              <name>${docker.name}</name>
               <build>
                 <from>adoptopenjdk:11-jre-hotspot</from>
                 <tags>

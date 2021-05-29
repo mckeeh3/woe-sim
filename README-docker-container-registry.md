@@ -69,12 +69,20 @@ Change the Kubernetes deployment `.yml` file changing the image name required to
 In the `spec/template/spec/contaimers/image` field, change the image name to `<your-docker-user>/<image-name>`.
 Such as `mckeeh3/woe-sim`, `mckeeh3/woe-twin`, `mckeeh3/visualizer`, etc.
 
-Also change the image name in the `pom.xml` file.
-
-Use the following command to build and push Docker images. Look for the `docker-maven-plugin`.
-
-In the `configuration/images/image/name` tag, change the image name to `<your-docker-user>/%a`.
+For Docker Hub, the image name format is `<your-docker-username>/<app name>`.
 
 ~~~bash
-mvn clean package docker:push
+mvn clean package docker:push -Ddocker.name=mckeeh3/woe-sim
+~~~
+
+~~~bash
+mvn clean package docker:push -Ddocker.name=mckeeh3/woe-twin
+~~~
+
+~~~bash
+mvn clean package docker:push -Ddocker.name=mckeeh3/woe-simulator
+~~~
+
+~~~bash
+mvn clean package docker:push -Ddocker.name=mckeeh3/woe-visualizer
 ~~~
