@@ -7,33 +7,73 @@ Yugabyte provides APIs for both Cassandra and PostgreSQL.
 
 - [Setup Yugabyte in your Kubernetes Cluster](#setup-yugabyte-in-your-kubernetes-cluster)
   - [Deploy Yugabyte to Kubernetes](#deploy-yugabyte-to-kubernetes)
+    - [Create namespace](#create-namespace)
+    - [Deploy Yugabyte using helm](#deploy-yugabyte-using-helm)
   - [Verify Access to CQL and SQL CLI](#verify-access-to-cql-and-sql-cli)
   - [Copy CQL DDL commands to the Yugabyte server](#copy-cql-ddl-commands-to-the-yugabyte-server)
   - [Create the CQL Tables](#create-the-cql-tables)
 
 ## Deploy Yugabyte to Kubernetes
 
-Follow the documentation for installing
+You can follow the recommended steps below or follow the documentation for installing
 [Yugabyte](https://docs.yugabyte.com/latest/deploy/).
 
-Recommended default deployment changes.
+For performance testing use the above Yugabyte documentation.
 
-* Deploy with [Helm](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/gke/helm-chart/)
-* Use namespace `yugabyte-db`. `kubectl create namespace yugabyte-db`
-* Specify Kubernetes pod replicas, CPU request and limit when doing the `helm install` step.
+### Create namespace
 
 ~~~bash
-$ helm install yugabyte-db yugabytedb/yugabyte --namespace yugabyte-db --wait \
---set replicas.tserver=4,\
-resource.tserver.requests.cpu=4,\
-resource.tserver.limits.cpu=8
+kubectl create namespace yugabyte-db
+~~~
+
+~~~text
+namespace/yugabyte-db created
+~~~
+
+### Deploy Yugabyte using helm
+
+The following steps are similar to the steps provided [here](https://docs.yugabyte.com/latest/deploy/kubernetes/single-zone/oss/helm-chart/).
+
+To add the YugabyteDB charts repository, run the following command.
+
+~~~bash
+helm repo add yugabytedb https://charts.yugabyte.com
+~~~
+
+Make sure that you have the latest updates to the repository by running the following command.
+
+~~~bash
+helm repo update
+~~~
+
+Validate the chart version
+
+~~~bash
+helm search repo yugabytedb/yugabyte
+~~~
+
+~~~text
+NAME               	CHART VERSION	APP VERSION	DESCRIPTION
+yugabytedb/yugabyte	2.7.1        	2.7.1.1-b1 	YugabyteDB is the high-performance distributed ...
+~~~
+
+Specify Kubernetes pod replicas, CPU request and limit when doing the `helm install` step.
+Adjust the number of replicas and CPU settings as needed.
+
+~~~bash
+helm install yugabyte-db yugabytedb/yugabyte --namespace yugabyte-db --wait --set \
+replicas.tserver=3,\
+resource.tserver.requests.cpu=2,\
+resource.tserver.limits.cpu=4
 ~~~
 
 As shown in the Yugabyte documentation, verify the status of the deployment using the following command.
 
 ~~~bash
-$ helm status yugabyte-db -n yugabyte-db
+helm status yugabyte-db -n yugabyte-db
+~~~
 
+~~~text
 NAME: yugabyte-db
 LAST DEPLOYED: Mon Jul 27 14:36:03 2020
 NAMESPACE: yugabyte-db
@@ -74,8 +114,10 @@ CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
 Cassandra CQL shell
 
 ~~~bash
-$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+~~~
 
+~~~text
 Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
@@ -89,15 +131,16 @@ ycqlsh> quit
 From the woe-sim project directory.
 
 ~~~bash
-$ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp
-Defaulting container name to yb-tserver.
+kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp
 ~~~
 
 ## Create the CQL Tables
 
 ~~~bash
-$ kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
+~~~
 
+~~~text
 Defaulting container name to yb-tserver.
 Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the containers in this pod.
 Connected to local cluster at yb-tserver-0:9042.
