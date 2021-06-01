@@ -5,6 +5,12 @@ These instructions are for setting up Yugabyte in your Kubernetes cluster. This 
 
 Yugabyte provides APIs for both Cassandra and PostgreSQL.
 
+- [Setup Yugabyte in your Kubernetes Cluster](#setup-yugabyte-in-your-kubernetes-cluster)
+  - [Deploy Yugabyte to Kubernetes](#deploy-yugabyte-to-kubernetes)
+  - [Verify Access to CQL and SQL CLI](#verify-access-to-cql-and-sql-cli)
+  - [Copy CQL DDL commands to the Yugabyte server](#copy-cql-ddl-commands-to-the-yugabyte-server)
+  - [Create the CQL Tables](#create-the-cql-tables)
+
 ## Deploy Yugabyte to Kubernetes
 
 Follow the documentation for installing

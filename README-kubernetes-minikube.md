@@ -1,6 +1,11 @@
 
 # Setup Minikube on local development system
 
+- [Setup Minikube on local development system](#setup-minikube-on-local-development-system)
+  - [Install Kubernetes CLI](#install-kubernetes-cli)
+  - [Install Minikube](#install-minikube)
+    - [Start Minikube](#start-minikube)
+
 ## Install Kubernetes CLI
 
 Follow the instructions in the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/#kubectl) new tab to install `kubectl`.

@@ -3,7 +3,17 @@
 
 See the below section for the container registry for your specific environment.
 
-Note, that Docker Hub can be used for any Kubernetes environment.
+Note, Docker Hub can be used for any Kubernetes environment.
+
+- [Setup and configure a Container Registry](#setup-and-configure-a-container-registry)
+  - [Amazon Elastic Container Registry (ECR)](#amazon-elastic-container-registry-ecr)
+    - [Create a repository](#create-a-repository)
+    - [Authenticate to your default registry](#authenticate-to-your-default-registry)
+    - [Build and push a Docker image to the AWS ECR repository](#build-and-push-a-docker-image-to-the-aws-ecr-repository)
+  - [Google Cloud Container Registry](#google-cloud-container-registry)
+  - [Docker Hub Container Registry](#docker-hub-container-registry)
+    - [Log in to a Docker registry](#log-in-to-a-docker-registry)
+    - [Build and push a Docker image to Docker Hub repository](#build-and-push-a-docker-image-to-docker-hub-repository)
 
 ## Amazon Elastic Container Registry (ECR)
 

@@ -3,6 +3,15 @@
 
 Follow these instructions to deploy PostgreSQL to a Kubernetes cluster.
 
+- [Deploy PostgreSQL to Kubernetes cluster](#deploy-postgresql-to-kubernetes-cluster)
+  - [Install PostgreSQL](#install-postgresql)
+  - [Install PostgreSQL using Helm](#install-postgresql-using-helm)
+    - [Create a `postgresql` namespace](#create-a-postgresql-namespace)
+    - [Install PostgreSQL into to `postgresql` namespace](#install-postgresql-into-to-postgresql-namespace)
+    - [Create PostgreSQL environment variable](#create-postgresql-environment-variable)
+    - [Create PostgreSQL secret](#create-postgresql-secret)
+  - [Create the Akka Persistence PostgreSQL tables](#create-the-akka-persistence-postgresql-tables)
+
 ## Install PostgreSQL
 
 First, [Install Helm](https://helm.sh/docs/intro/install/).

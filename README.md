@@ -4,6 +4,18 @@ This microservice simulates geographically distributed IoT devices. This service
 
 Via the map UI provided by the woe-twin microservice, requests to create and delete IoT devices or requests to change the state of existing devices are processed by this microservice. These processed requests are then sent as simulated device telemetry messages to the woe-twin microservice.
 
+- [Where on Earth Simulator (woe-sim) Microservice](#where-on-earth-simulator-woe-sim-microservice)
+  - [Deploy the woe-sim microservice](#deploy-the-woe-sim-microservice)
+    - [Setup a Kubernetes cluster](#setup-a-kubernetes-cluster)
+    - [Create the Kubernetes namespace](#create-the-kubernetes-namespace)
+    - [Setup a database for the woe-sim microservice](#setup-a-database-for-the-woe-sim-microservice)
+    - [Setup Docker repository](#setup-docker-repository)
+    - [Build and push the Docker image](#build-and-push-the-docker-image)
+    - [Deploy the Docker image to the Kubernetes cluster](#deploy-the-docker-image-to-the-kubernetes-cluster)
+    - [Check if the pods are running](#check-if-the-pods-are-running)
+    - [Create a Load Balancer to enable external access](#create-a-load-balancer-to-enable-external-access)
+  - [Design notes](#design-notes)
+
 ## Deploy the woe-sim microservice
 
 Follow these instructions for installing and running the woe-sim microservice.
@@ -48,7 +60,7 @@ See [README-database](https://github.com/mckeeh3/woe-sim/blob/master/README-data
 
 See [README-docker-container-registry](https://github.com/mckeeh3/woe-sim/blob/master/README-docker-container-registry.md) for instructions on setting up a Docker image registry.
 
-### Build the Docker image
+### Build and push the Docker image
 
 From the woe-sim project directory.
 

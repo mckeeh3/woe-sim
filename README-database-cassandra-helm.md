@@ -3,6 +3,15 @@
 
 Follow these instructions to deploy Cassandra to a Kubernetes cluster.
 
+- [Deploy Cassandra to Kubernetes cluster](#deploy-cassandra-to-kubernetes-cluster)
+  - [Install Cassandra](#install-cassandra)
+  - [Install Cassandra using Helm](#install-cassandra-using-helm)
+    - [Create a `cassandra` namespace](#create-a-cassandra-namespace)
+    - [Install Cassandra into to `cassandra` namespace](#install-cassandra-into-to-cassandra-namespace)
+    - [Create Cassandra environment variable](#create-cassandra-environment-variable)
+    - [Create Cassandra secret](#create-cassandra-secret)
+  - [Create the Akka Persistence Cassandra tables](#create-the-akka-persistence-cassandra-tables)
+
 ## Install Cassandra
 
 First, [Install Helm](https://helm.sh/docs/intro/install/).
