@@ -9,9 +9,17 @@ Yugabyte provides APIs for both Cassandra and PostgreSQL.
   - [Deploy Yugabyte to Kubernetes](#deploy-yugabyte-to-kubernetes)
     - [Create namespace](#create-namespace)
     - [Deploy Yugabyte using helm](#deploy-yugabyte-using-helm)
-  - [Verify Access to CQL and SQL CLI](#verify-access-to-cql-and-sql-cli)
-  - [Copy CQL DDL commands to the Yugabyte server](#copy-cql-ddl-commands-to-the-yugabyte-server)
-  - [Create the CQL Tables](#create-the-cql-tables)
+  - [Select database type](#select-database-type)
+  - [Yugabyte Cassandra](#yugabyte-cassandra)
+    - [Verify Access to the CQL shell](#verify-access-to-the-cql-shell)
+    - [Copy CQL DDL commands to the Yugabyte server](#copy-cql-ddl-commands-to-the-yugabyte-server)
+    - [Create the CQL Tables](#create-the-cql-tables)
+    - [Verify that the tables have been created](#verify-that-the-tables-have-been-created)
+  - [Yugabyte JDBC PostgreSQL](#yugabyte-jdbc-postgresql)
+    - [Verify access to the SQL shell](#verify-access-to-the-sql-shell)
+    - [Copy SQL DDL commands to the Yugabyte server](#copy-sql-ddl-commands-to-the-yugabyte-server)
+    - [Create the SQL Tables](#create-the-sql-tables)
+    - [Verify that the tables have been created](#verify-that-the-tables-have-been-created-1)
 
 ## Deploy Yugabyte to Kubernetes
 
@@ -106,12 +114,17 @@ NOTES:
   kubectl delete pvc --namespace yugabyte-db -l app=yb-tserver
 ~~~
 
-## Verify Access to CQL and SQL CLI
+## Select database type
 
-Try the following commands to verify access to Cassandra CQL and PostgreSQL
+The Yugabyte DB provides APIs for either Cassandra or JDBC. You can use either DB type with Akka Persistence, which is what the `woe-sim` uses for its event log.
+Follow the steps in one of the sections below based on the database type you plan to use.
+
+## Yugabyte Cassandra
+
+### Verify Access to the CQL shell
+
+Try the following commands to verify access to Cassandra CQL
 CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
-
-Cassandra CQL shell
 
 ~~~bash
 kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
@@ -123,10 +136,16 @@ Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the contain
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
-ycqlsh> quit
+ycqlsh>
 ~~~
 
-## Copy CQL DDL commands to the Yugabyte server
+Quit the CQL shell.
+
+~~~bash
+quit
+~~~
+
+### Copy CQL DDL commands to the Yugabyte server
 
 From the woe-sim project directory.
 
@@ -134,7 +153,7 @@ From the woe-sim project directory.
 kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-db/yb-tserver-0:/tmp
 ~~~
 
-## Create the CQL Tables
+### Create the CQL Tables
 
 Start `ycqlsh` on a pod.
 
@@ -155,6 +174,8 @@ Execute the CQL DDL from the copied in the above step file.
 ~~~bash
 source '/tmp/akka-persistence-journal-create-sim.cql'
 ~~~
+
+### Verify that the tables have been created
 
 ~~~bash
 describe keyspaces;
@@ -183,3 +204,40 @@ Quit the `ycqlsh'.
 ~~~bash
 quit
 ~~~
+
+## Yugabyte JDBC PostgreSQL
+
+### Verify access to the SQL shell
+
+Try the following commands to verify access to PostgreSQL
+CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
+
+~~~bash
+kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh
+~~~
+
+~~~text
+Defaulted container "yb-tserver" out of: yb-tserver, yb-cleanup
+ysqlsh (11.2-YB-2.7.1.1-b0)
+Type "help" for help.
+
+yugabyte=#
+~~~
+
+Quit the SQL shell.
+
+~~~bash
+\q
+~~~
+
+### Copy SQL DDL commands to the Yugabyte server
+
+From the woe-sim project directory.
+
+~~~bash
+kubectl cp src/main/resources/akka-persistence-journal-create-sim.sql yugabyte-db/yb-tserver-0:/tmp
+~~~
+
+### Create the SQL Tables
+
+### Verify that the tables have been created
