@@ -75,7 +75,7 @@ helm status yugabyte-db -n yugabyte-db
 
 ~~~text
 NAME: yugabyte-db
-LAST DEPLOYED: Mon Jul 27 14:36:03 2020
+LAST DEPLOYED: Wed Jun  2 11:34:56 2021
 NAMESPACE: yugabyte-db
 STATUS: deployed
 REVISION: 1
@@ -136,6 +136,8 @@ kubectl cp src/main/resources/akka-persistence-journal-create-sim.cql yugabyte-d
 
 ## Create the CQL Tables
 
+Start `ycqlsh` on a pod.
+
 ~~~bash
 kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
 ~~~
@@ -148,10 +150,17 @@ Connected to local cluster at yb-tserver-0:9042.
 Use HELP for help.
 ~~~
 
-~~~bash
-ycqlsh> source '/tmp/akka-persistence-journal-create-sim.cql'
-ycqlsh> describe keyspaces;
+Execute the CQL DDL from the copied in the above step file.
 
+~~~bash
+source '/tmp/akka-persistence-journal-create-sim.cql'
+~~~
+
+~~~bash
+describe keyspaces;
+~~~
+
+~~~text
 woe_simulator  system_schema  system_auth  system
 
 ycqlsh> use woe_simulator;
