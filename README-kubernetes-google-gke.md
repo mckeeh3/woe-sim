@@ -65,7 +65,7 @@ gcloud container clusters create <my-cluster-name> --num-nodes=1
 ~~~
 
 ~~~bash
-gcloud container clusters create woe-yugabyte-std --num-nodes=5
+gcloud container clusters create woe-yugabyte-std --num-nodes=3 --machine-type=e2-standard-8
 ~~~
 
 ~~~text
@@ -78,8 +78,8 @@ Creating cluster woe-yugabyte-std in us-east1-b... Cluster is being health-check
 Created [https://container.googleapis.com/v1/projects/woe-yugabyte/zones/us-east1-b/clusters/woe-yugabyte-std].
 To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-east1-b/woe-yugabyte-std?project=woe-yugabyte
 kubeconfig entry generated for woe-yugabyte-std.
-NAME              LOCATION    MASTER_VERSION   MASTER_IP     MACHINE_TYPE  NODE_VERSION     NUM_NODES  STATUS
-woe-yugabyte-std  us-east1-b  1.19.9-gke.1400  34.75.157.28  e2-medium     1.19.9-gke.1400  5          RUNNING
+NAME              LOCATION    MASTER_VERSION   MASTER_IP    MACHINE_TYPE   NODE_VERSION     NUM_NODES  STATUS
+woe-yugabyte-std  us-east1-b  1.19.9-gke.1400  34.73.8.176  e2-standard-8  1.19.9-gke.1400  3          RUNNING
 ~~~
 
 #### Create an autopilot GKE cluster
