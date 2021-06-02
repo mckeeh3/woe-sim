@@ -167,3 +167,5 @@ Finally, quit the `psql` and exit the shell. This will terminate the `postgresql
 ~~~text
 pod "postgresql-client" deleted
 ~~~
+
+Return to the deployment [README](https://github.com/mckeeh3/woe-sim/blob/master/README.md#setup-a-database-for-the-woe-sim-microservice).
