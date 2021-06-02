@@ -138,3 +138,5 @@ kubeconfig entry generated for woe-yugabyte-auto.
 NAME               LOCATION  MASTER_VERSION   MASTER_IP      MACHINE_TYPE  NODE_VERSION     NUM_NODES  STATUS
 woe-yugabyte-auto  us-east1  1.19.9-gke.1900  35.185.61.131  e2-medium     1.19.9-gke.1900  3          RUNNING
 ~~~
+
+Return to the deployment [README](https://github.com/mckeeh3/woe-sim/blob/master/README.md#setup-a-kubernetes-cluster).
