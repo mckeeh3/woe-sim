@@ -28,7 +28,7 @@ git clone https://github.com/mckeeh3/woe-sim.git
 
 ### Setup a Kubernetes cluster
 
-See [README-kuberbetes](https://github.com/mckeeh3/woe-sim/blob/master/README-kubernetes.md) for instructions on setting up a Kubernetes cluster in various environments.
+See [README-kuberbetes](README-kubernetes.md) for instructions on setting up a Kubernetes cluster in various environments.
 
 ### Create the Kubernetes namespace
 
@@ -54,11 +54,11 @@ Context "kind-kind" modified.
 
 ### Setup a database for the woe-sim microservice
 
-See [README-database](https://github.com/mckeeh3/woe-sim/blob/master/README-database.md) for instructions on setting up a Cassandra or PostgreSQL database in various environments.
+See [README-database](README-database.md) for instructions on setting up a Cassandra or PostgreSQL database in various environments.
 
 ### Setup Docker repository
 
-See [README-docker-container-registry](https://github.com/mckeeh3/woe-sim/blob/master/README-docker-container-registry.md) for instructions on setting up a Docker image registry.
+See [README-docker-container-registry](README-docker-container-registry.md) for instructions on setting up a Docker image registry.
 
 ### Build and push the Docker image
 
@@ -120,7 +120,7 @@ woe-sim-77dfcc864b-vf78s   1/1     Running   0          3h10m
 
 ### Create a Load Balancer to enable external access
 
-See [README-load-balancer](https://github.com/mckeeh3/woe-sim/blob/master/README-load-balancer.md) for instructions on setting up a Kubernetes load balancer in various environments.
+See [README-load-balancer](README-load-balancer.md) for instructions on setting up a Kubernetes load balancer in various environments.
 
 Next, deploy the [woe-twin microservice](https://github.com/mckeeh3/woe-twin).
 

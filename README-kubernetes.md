@@ -1,10 +1,10 @@
 
 # Setup Kubernetes locally or on other cloud providers
 
-[kind](https://github.com/mckeeh3/woe-sim/blob/master/README-kubernetes-kind.md) Kubernetes on local development system
+[kind](README-kubernetes-kind.md) Kubernetes on local development system
 
-[Minikube](https://github.com/mckeeh3/woe-sim/blob/master/README-kubernetes-minikube.md) Kunernetes on local development system
+[Minikube](README-kubernetes-minikube.md) Kunernetes on local development system
 
-TODO AWS
+[Amazon Elastic Kubernetes Service](README-kubernetes-amazon-eks.md)
 
-[Google Kubernetes Engine](https://github.com/mckeeh3/woe-sim/blob/master/README-kubernetes-google-gke.md)
+[Google Kubernetes Engine](README-kubernetes-google-gke.md)

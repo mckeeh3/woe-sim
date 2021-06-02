@@ -8,10 +8,10 @@ You have the option to use either Cassandra or JDBC for the Akka Persistence eve
 
 Provided here are links to instructions for setting up various database in various environments.
 
-[Cassandra](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-helm.md)
+[Cassandra](README-database-cassandra-helm.md)
 deployed to a Kubernetes cluster using helm.
 
-[PostgreSQL](https://github.com/mckeeh3/woe-sim/blob/master/README-database-postgresql-helm.md)
+[PostgreSQL](README-database-postgresql-helm.md)
 deployed to a kubernetes cluster using helm.
 
-[Yugabyte](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md), which provides both Cassandra and PostgreSQL, deployed to a kubernetes cluster.
+[Yugabyte](README-database-yugabyte-kubernetes.md), which provides both Cassandra and PostgreSQL, deployed to a kubernetes cluster.
