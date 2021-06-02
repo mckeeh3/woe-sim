@@ -14,12 +14,12 @@ Yugabyte provides APIs for both Cassandra and PostgreSQL.
     - [Verify Access to the CQL shell](#verify-access-to-the-cql-shell)
     - [Copy CQL DDL commands to the Yugabyte server](#copy-cql-ddl-commands-to-the-yugabyte-server)
     - [Create the CQL Tables](#create-the-cql-tables)
-    - [Verify that the tables have been created](#verify-that-the-tables-have-been-created)
+    - [Verify that the CQL tables have been created](#verify-that-the-cql-tables-have-been-created)
   - [Yugabyte JDBC PostgreSQL](#yugabyte-jdbc-postgresql)
     - [Verify access to the SQL shell](#verify-access-to-the-sql-shell)
     - [Copy SQL DDL commands to the Yugabyte server](#copy-sql-ddl-commands-to-the-yugabyte-server)
     - [Create the SQL Tables](#create-the-sql-tables)
-    - [Verify that the tables have been created](#verify-that-the-tables-have-been-created-1)
+    - [Verify that the SQL tables have been created](#verify-that-the-sql-tables-have-been-created)
 
 ## Deploy Yugabyte to Kubernetes
 
@@ -167,6 +167,7 @@ Use 'kubectl describe pod/yb-tserver-0 -n yugabyte-db' to see all of the contain
 Connected to local cluster at yb-tserver-0:9042.
 [ycqlsh 5.0.1 | Cassandra 3.9-SNAPSHOT | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
+ycqlsh>
 ~~~
 
 Execute the CQL DDL from the copied in the above step file.
@@ -175,7 +176,7 @@ Execute the CQL DDL from the copied in the above step file.
 source '/tmp/akka-persistence-journal-create-sim.cql'
 ~~~
 
-### Verify that the tables have been created
+### Verify that the CQL tables have been created
 
 ~~~bash
 describe keyspaces;
@@ -240,4 +241,51 @@ kubectl cp src/main/resources/akka-persistence-journal-create-sim.sql yugabyte-d
 
 ### Create the SQL Tables
 
-### Verify that the tables have been created
+Start `ysqlsh` on a pod.
+
+~~~bash
+kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh
+~~~
+
+~~~text
+Defaulted container "yb-tserver" out of: yb-tserver, yb-cleanup
+ysqlsh (11.2-YB-2.7.1.1-b0)
+Type "help" for help.
+
+yugabyte=#
+~~~
+
+Execute the SQL DDL from the copied in the above step file.
+
+~~~bash
+\i /tmp/akka-persistence-journal-create-sim.sql
+~~~
+
+~~~text
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+yugabyte=#
+~~~
+
+### Verify that the SQL tables have been created
+
+~~~bash
+\d
+~~~
+
+~~~text
+                         List of relations
+ Schema |                Name                |   Type   |  Owner
+--------+------------------------------------+----------+----------
+ public | woe_sim_event_journal              | table    | yugabyte
+ public | woe_sim_event_journal_ordering_seq | sequence | yugabyte
+ public | woe_sim_event_tag                  | table    | yugabyte
+(3 rows)
+~~~
+
+Quit the SQL shell
+
+~~~bash
+\q
+~~~
