@@ -58,9 +58,9 @@ You may want to deploy the Kubernetes dashboard. This is an optional step. To de
 The WoE Simulator service uses an event log with [Akka Persistence](https://doc.akka.io/docs/akka/current/typed/persistence.html).
 
 Follow the installation instructions in the
-[README-database-cassandra-amazon.md](https://github.com/mckeeh3/woe-sim/blob/master/README-database-cassandra-amazon.md)
+[README-database-cassandra-amazon.md](README-database-cassandra-amazon.md)
 or, for a Yugabyte installation in the
-[README-database-yugabyte-kubernetes.md](https://github.com/mckeeh3/woe-sim/blob/master/README-database-yugabyte-kubernetes.md).
+[README-database-yugabyte-kubernetes.md](README-database-yugabyte-kubernetes.md).
 
 TODO
 
