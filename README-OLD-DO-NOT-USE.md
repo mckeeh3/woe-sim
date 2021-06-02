@@ -1,4 +1,4 @@
-# Where on Earth Simulator (woe-sim) Microservice
+# OLD - DO NOT USE - Where on Earth Simulator (woe-sim) Microservice
 
 This microservice simulates geographically distributed IoT devices. This service manages the creation, state, and deletion of IoT devices.
 

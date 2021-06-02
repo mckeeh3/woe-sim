@@ -5,6 +5,7 @@
   - [Install Kubernetes CLI](#install-kubernetes-cli)
   - [Install `kind` and Kubernetes CLI](#install-kind-and-kubernetes-cli)
     - [Create the `kind' local Kubernetes cluster](#create-the-kind-local-kubernetes-cluster)
+
 ## Install Kubernetes CLI
 
 Follow the instructions in the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/#kubectl) new tab to install `kubectl`.
@@ -111,4 +112,3 @@ NAMESPACE            NAME                                                DESIRED
 kube-system          replicaset.apps/coredns-74ff55c5b                   2         2         2       2m42s
 local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1         1         1       2m42s
 ~~~
-
