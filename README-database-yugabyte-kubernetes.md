@@ -124,7 +124,7 @@ Follow the steps in one of the sections below based on the database type you pla
 ### Verify Access to the CQL shell
 
 Try the following commands to verify access to Cassandra CQL
-CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
+CQL CLI tool once Yugabyte has been installed in a Kubernetes environment.
 
 ~~~bash
 kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ycqlsh yb-tserver-0
@@ -211,7 +211,7 @@ quit
 ### Verify access to the SQL shell
 
 Try the following commands to verify access to PostgreSQL
-CQL CLI tools once Yugabyte has been installed in a Kubernetes environment.
+SQL CLI tool once Yugabyte has been installed in a Kubernetes environment.
 
 ~~~bash
 kubectl --namespace yugabyte-db exec -it yb-tserver-0 -- /home/yugabyte/bin/ysqlsh
@@ -289,3 +289,5 @@ Quit the SQL shell
 ~~~bash
 \q
 ~~~
+
+Return to the deployment [README](https://github.com/mckeeh3/woe-sim/blob/master/README.md).
