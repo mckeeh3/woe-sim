@@ -98,3 +98,6 @@ curl -v http://$(minikube ip):31809/cluster/members | python -m json.tool
     "unreachable": []
 }
 ~~~
+
+---
+Return to the deployment [README](README.md#create-a-load-balancer-to-enable-external-access).

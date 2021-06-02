@@ -113,4 +113,5 @@ NAMESPACE     NAME                                DESIRED   CURRENT   READY   AG
 kube-system   replicaset.apps/coredns-74ff55c5b   1         1         0       20s
 ~~~
 
+---
 Return to the deployment [README](README.md#setup-a-kubernetes-cluster).

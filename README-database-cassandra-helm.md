@@ -196,4 +196,5 @@ exit
 pod "cassandra-client" deleted
 ~~~
 
+---
 Return to the deployment [README](README.md#setup-a-database-for-the-woe-sim-microservice).

@@ -96,3 +96,6 @@ mvn clean package docker:push -Ddocker.name=mckeeh3/woe-simulator
 ~~~bash
 mvn clean package docker:push -Ddocker.name=mckeeh3/woe-visualizer
 ~~~
+
+---
+Return to the deployment [README](README.md#setup-docker-repository).

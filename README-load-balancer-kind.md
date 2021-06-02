@@ -182,3 +182,6 @@ curl -v http://172.18.255.200:8558/cluster/members | python -m json.tool
     "unreachable": []
 }
 ~~~
+
+---
+Return to the deployment [README](README.md#create-a-load-balancer-to-enable-external-access).

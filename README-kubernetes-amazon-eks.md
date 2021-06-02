@@ -60,4 +60,5 @@ An alternative is to create it from the [Amazon EKS console](https://console.aws
 You may want to deploy the Kubernetes dashboard. This is an optional step. To deploy the dashboard follow the
 [Tutorial: Deploy the Kubernetes Dashboard (web UI)](https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html).
 
+---
 Return to the deployment [README](README.md#setup-a-kubernetes-cluster).

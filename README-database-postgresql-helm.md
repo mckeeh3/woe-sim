@@ -64,8 +64,6 @@ To connect to your database run the following command:
 
     kubectl run postgresql-client --rm --tty -i --restart='Never' --namespace postgresql --image docker.io/bitnami/postgresql:11.12.0-debian-10-r5 --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host postgresql -U postgres -d postgres -p 5432
 
-
-
 To connect to your database from outside the cluster execute the following commands:
 
     kubectl port-forward --namespace postgresql svc/postgresql 5432:5432 &
@@ -168,4 +166,5 @@ Finally, quit the `psql` and exit the shell. This will terminate the `postgresql
 pod "postgresql-client" deleted
 ~~~
 
+---
 Return to the deployment [README](README.md#setup-a-database-for-the-woe-sim-microservice).

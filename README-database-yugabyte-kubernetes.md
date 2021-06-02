@@ -290,4 +290,5 @@ Quit the SQL shell
 \q
 ~~~
 
+---
 Return to the deployment [README](README.md#setup-a-database-for-the-woe-sim-microservice).

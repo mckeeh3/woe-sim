@@ -113,4 +113,5 @@ kube-system          replicaset.apps/coredns-74ff55c5b                   2      
 local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1         1         1       2m42s
 ~~~
 
+---
 Return to the deployment [README](README.md#setup-a-kubernetes-cluster).
