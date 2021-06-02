@@ -162,12 +162,24 @@ describe keyspaces;
 
 ~~~text
 woe_simulator  system_schema  system_auth  system
+~~~
 
-ycqlsh> use woe_simulator;
-ycqlsh:woe_simulator> describe tables;
+Verify that the CQL tables have been created.
 
+~~~bash
+use woe_simulator;
+describe tables;
+~~~
+
+~~~text
 tag_views  tag_scanning         tag_write_progress
 messages   all_persistence_ids  metadata
 
 ycqlsh:woe_simulator>quit
+~~~
+
+Quit the `ycqlsh'.
+
+~~~bash
+quit
 ~~~
