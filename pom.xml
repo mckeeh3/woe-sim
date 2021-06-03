@@ -19,14 +19,14 @@
     <akka.management.version>1.1.0</akka.management.version>
     <akka.persistence.cassandra.version>1.0.5</akka.persistence.cassandra.version>
     <akka.persistence.jdbc.version>5.0.1</akka.persistence.jdbc.version>
-    <akka.grpc.version>1.1.1</akka.grpc.version>
+    <akka.grpc.version>2.0.0</akka.grpc.version>
     <datastax.core.version>4.11.1</datastax.core.version>
-    <grpc.version>1.35.0</grpc.version>
-    <postgresql.version>42.2.18</postgresql.version>
+    <grpc.version>1.38.0</grpc.version>
+    <postgresql.version>42.2.20.jre7</postgresql.version>
     <yugabyte.driver.version>3.8.0-yb-5</yugabyte.driver.version>
     <logback.version>1.2.3</logback.version>
-    <junit.jupiter.version>5.5.2</junit.jupiter.version>
-    <junit.platform.version>1.5.2</junit.platform.version>
+    <junit.jupiter.version>5.7.2</junit.jupiter.version>
+    <junit.platform.version>1.7.2</junit.platform.version>
   </properties>
 
   <dependencies>

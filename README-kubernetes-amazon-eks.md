@@ -6,6 +6,7 @@
     - [Install Kubernetes CLI](#install-kubernetes-cli)
   - [Create an EKS cluster](#create-an-eks-cluster)
   - [Deploy the Kubernetes Dashboard (Optional)](#deploy-the-kubernetes-dashboard-optional)
+  - [Delete a Kubernetes cluster](#delete-a-kubernetes-cluster)
 
 ## Install CLIs
 
@@ -59,6 +60,16 @@ An alternative is to create it from the [Amazon EKS console](https://console.aws
 
 You may want to deploy the Kubernetes dashboard. This is an optional step. To deploy the dashboard follow the
 [Tutorial: Deploy the Kubernetes Dashboard (web UI)](https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html).
+
+## Delete a Kubernetes cluster
+
+~~~bash
+eksctl delete cluster \
+    --region <cluster-region> \
+    --name <cluster-name>
+~~~
+
+> **Note** Deleting the cluster from the Amazon EKS console new tab requires several steps and therefore it’s easiest to use eksctl for this.
 
 ---
 Return to the deployment [README](README.md#setup-a-kubernetes-cluster).

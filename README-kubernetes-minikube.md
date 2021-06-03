@@ -5,6 +5,8 @@
   - [Install Kubernetes CLI](#install-kubernetes-cli)
   - [Install Minikube](#install-minikube)
     - [Start Minikube](#start-minikube)
+    - [Check minikube cluster status](#check-minikube-cluster-status)
+- [Delete the minikube cluster](#delete-the-minikube-cluster)
 
 ## Install Kubernetes CLI
 
@@ -69,6 +71,8 @@ minikube start --driver=virtualbox --cpus=4 --memory=10g
 🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
 ~~~
 
+### Check minikube cluster status
+
 Once the `minikube` Kubernetes cluster is up you can check its status using the following commands.
 
 ~~~bash
@@ -111,6 +115,12 @@ kube-system   deployment.apps/coredns   0/1     1            0           36s
 
 NAMESPACE     NAME                                DESIRED   CURRENT   READY   AGE
 kube-system   replicaset.apps/coredns-74ff55c5b   1         1         0       20s
+~~~
+
+# Delete the minikube cluster
+
+~~~bash
+minikube
 ~~~
 
 ---

@@ -10,6 +10,7 @@
     - [Create a GKE cluster from the CLI](#create-a-gke-cluster-from-the-cli)
       - [Create a standard GKE cluster](#create-a-standard-gke-cluster)
       - [Create an autopilot GKE cluster](#create-an-autopilot-gke-cluster)
+  - [Delete a Kubernetes cluster](#delete-a-kubernetes-cluster)
 
 ## Getting started with Google Cloud Platform
 
@@ -138,6 +139,10 @@ kubeconfig entry generated for woe-yugabyte-auto.
 NAME               LOCATION  MASTER_VERSION   MASTER_IP      MACHINE_TYPE  NODE_VERSION     NUM_NODES  STATUS
 woe-yugabyte-auto  us-east1  1.19.9-gke.1900  35.185.61.131  e2-medium     1.19.9-gke.1900  3          RUNNING
 ~~~
+
+## Delete a Kubernetes cluster
+
+You can use the [GCP GUI](https://console.cloud.google.com/kubernetes/list) new tab to delete the cluster.
 
 ---
 Return to the deployment [README](README.md#setup-a-kubernetes-cluster).

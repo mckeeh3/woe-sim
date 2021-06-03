@@ -5,6 +5,8 @@
   - [Install Kubernetes CLI](#install-kubernetes-cli)
   - [Install `kind` and Kubernetes CLI](#install-kind-and-kubernetes-cli)
     - [Create the `kind' local Kubernetes cluster](#create-the-kind-local-kubernetes-cluster)
+    - [Check Kind cluster status](#check-kind-cluster-status)
+  - [Delete the Kind cluster](#delete-the-kind-cluster)
 
 ## Install Kubernetes CLI
 
@@ -55,6 +57,8 @@ kubectl cluster-info --context kind-kind
 
 Not sure what to do next? 😅  Check out https://kind.sigs.k8s.io/docs/user/quick-start/
 ~~~
+
+### Check Kind cluster status
 
 Once the `kind` Kubernetes cluster is up you can check its status using the following commands.
 
@@ -111,6 +115,12 @@ local-path-storage   deployment.apps/local-path-provisioner   1/1     1         
 NAMESPACE            NAME                                                DESIRED   CURRENT   READY   AGE
 kube-system          replicaset.apps/coredns-74ff55c5b                   2         2         2       2m42s
 local-path-storage   replicaset.apps/local-path-provisioner-78776bfc44   1         1         1       2m42s
+~~~
+
+## Delete the Kind cluster
+
+~~~bash
+kind delete
 ~~~
 
 ---
