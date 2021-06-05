@@ -1,5 +1,5 @@
 
-# Docker Hub Container Registry
+# Use Docker Hub Container Registry
 
 See the [Docker Hub Quickstart](https://docs.docker.com/docker-hub/) for detailed instructions.
 
