@@ -1,5 +1,5 @@
 
-# Google Cloud Container Registry
+# Setup a Google Cloud Container Registry
 
 See [Quickstart for Container Registry](https://cloud.google.com/container-registry/docs/quickstart) and
 [Using Container Registry with Google Cloud](https://cloud.google.com/container-registry/docs/using-with-google-cloud-platform) for detailed instructions.

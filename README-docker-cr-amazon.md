@@ -1,5 +1,5 @@
 
-# Amazon Elastic Container Registry (ECR)
+# Setup an Amazon Elastic Container Registry (ECR)
 
 You need one repository for each application that you will deploy, with the same name as the application.
 
