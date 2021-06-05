@@ -9,4 +9,4 @@ See the below section for the container registry for your specific environment.
 
 [Docker Container Registry](README=docker-cr-google.md)
 
-[Docker Hub](README=docker-hub.md)
+[Docker Hub](README-docker-hub.md)
