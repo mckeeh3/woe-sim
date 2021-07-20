@@ -5,6 +5,7 @@
   - [Install CLIs](#install-clis)
     - [Install Kubernetes CLI](#install-kubernetes-cli)
   - [Create an EKS cluster](#create-an-eks-cluster)
+  - [Create AWS Access Control Secrets](#create-aws-access-control-secrets)
   - [Deploy the Kubernetes Dashboard (Optional)](#deploy-the-kubernetes-dashboard-optional)
   - [Delete a Kubernetes cluster](#delete-a-kubernetes-cluster)
 
@@ -55,6 +56,10 @@ eksctl create cluster \
 ~~~
 
 An alternative is to create it from the [Amazon EKS console](https://console.aws.amazon.com/eks/home).
+
+## Create AWS Access Control Secrets
+
+TODO kubectl create secret generic aws-access-key --from-literal=AWS_ACCESS_KEY='<your-access-key>' --from-literal=AWS_SECRET_ACCESS_KEY='<your-secret-access-key>' -n woe-sim
 
 ## Deploy the Kubernetes Dashboard (Optional)
 

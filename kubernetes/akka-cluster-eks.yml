@@ -18,9 +18,9 @@ spec:
     spec:
       containers:
         - name: woe-sim
-          image: mckeeh3/woe-sim
+          #image: mckeeh3/woe-sim:latest
+          image: 405074236871.dkr.ecr.us-east-1.amazonaws.com/woe-sim:latest
           imagePullPolicy: Always
-          javaOptions: "-Xlog:gc -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
           readinessProbe:
             httpGet:
               path: /ready
@@ -74,7 +74,7 @@ spec:
             - name: woe_simulator_http_server_port
               value: "8080"
             - name: woe_twin_telemetry_servers
-              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin-1.svc.cluster.local:8081"
+              value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin.svc.cluster.local:8081,woe.simulator.GrpcClientIbmDemo:twilight-bar-2982.us-east1.akkaserverlessapps.com:443"
             - name: AWS_ACCESS_KEY
               valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_ACCESS_KEY } }
             - name: AWS_SECRET_ACCESS_KEY

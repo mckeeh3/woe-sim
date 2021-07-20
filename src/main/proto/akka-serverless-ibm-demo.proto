@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package devices;
+
+message TelemetryRequest {
+  string device_id = 1;
+  enum Action {
+    UNKNOWN = 0; // Do not use.
+    DELETE = 1;
+    HAPPY = 2;
+    SAD = 3;
+    PING = 4;
+  }
+  Action action = 2;
+}
+
+service DeviceService {
+  rpc Telemetry (TelemetryRequest) returns (google.protobuf.Empty) {}
+}
