@@ -7,6 +7,6 @@ See the below section for the container registry for your specific environment.
 
 [Amazon Container Registry](README-docker-cr-amazon.md)
 
-[Docker Container Registry](README-docker-cr-google.md)
+[Google Container Registry](README-docker-cr-google.md)
 
 [Docker Hub](README-docker-hub.md)

@@ -74,7 +74,10 @@ spec:
             - name: woe_simulator_http_server_port
               value: "8080"
             - name: woe_twin_telemetry_servers
+              # Akka Serverless stage for IBM demo
               value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin.svc.cluster.local:8081,woe.simulator.GrpcClientIbmDemo:twilight-bar-2982.us-east1.akkaserverlessapps.com:443"
+              # Akka Serverless prod for IBM demo
+              # value: "woe.simulator.GrpcClient:woe-twin-service.woe-twin.svc.cluster.local:8081,woe.simulator.GrpcClientIbmDemo:small-brook-4499.us-east1.akkaserverless.app:443"
             - name: AWS_ACCESS_KEY
               valueFrom: { secretKeyRef: { name: aws-access-key, key: AWS_ACCESS_KEY } }
             - name: AWS_SECRET_ACCESS_KEY

@@ -3,6 +3,7 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 
 package devices;
+option java_package = "devices";
 
 message TelemetryRequest {
   string device_id = 1;
