@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package woe.twin;
+
+message Region {
+  int32 zoom = 1;
+  double topLeftLat = 2;
+  double topLeftLng = 3;
+  double botRightLat = 4;
+  double botRightLng = 5;
+}
+
+message TelemetryRequest {
+  string entityId = 1;
+  Region region = 2;
+  string action = 3;
+  int64 startTimeNs = 4;
+}
+
+message TelemetryResponse {
+  string message = 1;
+  int32 httpStatusCode = 2;
+  TelemetryRequest telemetryRequest = 3;
+}
+
+service IotDevice {
+  rpc Telemetry (TelemetryRequest) returns (TelemetryResponse);
+}
